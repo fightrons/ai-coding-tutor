@@ -60,6 +60,13 @@ export function useAuth() {
     return { error }
   }, [])
 
+  const updatePassword = useCallback(async (newPassword: string): Promise<{ error: AuthError | null }> => {
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    })
+    return { error }
+  }, [])
+
   return {
     user: state.user,
     session: state.session,
@@ -67,5 +74,6 @@ export function useAuth() {
     signUp,
     signIn,
     signOut,
+    updatePassword,
   }
 }
