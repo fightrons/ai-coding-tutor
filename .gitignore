@@ -3,6 +3,15 @@
 .env.local
 .env.*.local
 
+# Supabase
+supabase/.temp/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
 # Logs
 logs
 *.log
