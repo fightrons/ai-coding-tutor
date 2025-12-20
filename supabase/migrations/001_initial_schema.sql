@@ -46,6 +46,9 @@ CREATE TABLE student_profiles (
   -- Computed/updated by system
   current_skill_level TEXT CHECK (current_skill_level IN ('beginner', 'intermediate')) DEFAULT 'beginner',
 
+  -- Profile display
+  avatar_emoji TEXT DEFAULT '😊',
+
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );

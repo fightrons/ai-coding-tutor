@@ -150,6 +150,7 @@ export type Database = {
       }
       student_profiles: {
         Row: {
+          avatar_emoji: string | null
           created_at: string | null
           current_skill_level: string | null
           display_name: string | null
@@ -160,6 +161,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          avatar_emoji?: string | null
           created_at?: string | null
           current_skill_level?: string | null
           display_name?: string | null
@@ -170,6 +172,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          avatar_emoji?: string | null
           created_at?: string | null
           current_skill_level?: string | null
           display_name?: string | null

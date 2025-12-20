@@ -3,9 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '@/shared/components/ui/button'
 import { Label } from '@/shared/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/shared/components/ui/radio-group'
+import { Avatar } from '@/shared/components/Avatar'
+import { AvatarPicker } from '@/shared/components/AvatarPicker'
 import { useStudentProfile } from '../hooks/useStudentProfile'
 
-type Step = 'goal' | 'experience' | 'style'
+type Step = 'avatar' | 'goal' | 'experience' | 'style'
+
+const STEPS: Step[] = ['avatar', 'goal', 'experience', 'style']
 
 const GOALS = [
   { value: 'build_websites', label: 'Build websites', description: 'Create interactive web pages and apps' },
@@ -29,7 +33,8 @@ const STYLES = [
 export function OnboardingForm() {
   const navigate = useNavigate()
   const { updateProfile } = useStudentProfile()
-  const [step, setStep] = useState<Step>('goal')
+  const [step, setStep] = useState<Step>('avatar')
+  const [avatar, setAvatar] = useState('😊')
   const [goal, setGoal] = useState('')
   const [experience, setExperience] = useState('')
   const [style, setStyle] = useState('examples')
@@ -41,6 +46,7 @@ export function OnboardingForm() {
     setError(null)
 
     const { error } = await updateProfile({
+      avatar_emoji: avatar,
       learning_goal: goal,
       prior_experience: experience as 'none' | 'some' | 'other_language',
       preferred_style: style as 'examples' | 'analogies' | 'theory',
@@ -57,23 +63,39 @@ export function OnboardingForm() {
   }
 
   function handleNext() {
-    if (step === 'goal') setStep('experience')
+    if (step === 'avatar') setStep('goal')
+    else if (step === 'goal') setStep('experience')
     else if (step === 'experience') setStep('style')
     else handleComplete()
   }
 
   function handleBack() {
-    if (step === 'experience') setStep('goal')
+    if (step === 'goal') setStep('avatar')
+    else if (step === 'experience') setStep('goal')
     else if (step === 'style') setStep('experience')
   }
 
   const canProceed =
+    (step === 'avatar' && avatar) ||
     (step === 'goal' && goal) ||
     (step === 'experience' && experience) ||
     (step === 'style' && style)
 
   return (
     <div className="space-y-6">
+      {step === 'avatar' && (
+        <div className="space-y-4">
+          <div className="text-center">
+            <h2 className="text-lg font-semibold">Choose your avatar</h2>
+            <p className="text-sm text-muted-foreground">Pick an emoji to represent you</p>
+          </div>
+          <div className="flex justify-center py-4">
+            <Avatar emoji={avatar} size="lg" />
+          </div>
+          <AvatarPicker value={avatar} onChange={setAvatar} />
+        </div>
+      )}
+
       {step === 'goal' && (
         <div className="space-y-4">
           <div>
@@ -149,7 +171,7 @@ export function OnboardingForm() {
       {error && <p className="text-sm text-destructive">{error}</p>}
 
       <div className="flex gap-3">
-        {step !== 'goal' && (
+        {step !== 'avatar' && (
           <Button variant="outline" onClick={handleBack} disabled={loading}>
             Back
           </Button>
@@ -160,7 +182,7 @@ export function OnboardingForm() {
       </div>
 
       <div className="flex justify-center gap-2">
-        {['goal', 'experience', 'style'].map((s) => (
+        {STEPS.map((s) => (
           <div
             key={s}
             className={`h-2 w-2 rounded-full ${s === step ? 'bg-primary' : 'bg-muted'}`}
