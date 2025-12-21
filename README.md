@@ -5,6 +5,9 @@ An adaptive AI programming tutor that teaches JavaScript step-by-step with perso
 ## Features
 
 ### Implemented
+- **Frictionless Onboarding** — Start learning instantly without registration
+- **Access Code System** — Resume your progress on any device with a memorable code (e.g., SWIFT-BEAR-73)
+- **Optional Registration** — Upgrade to a permanent account anytime
 - **Curriculum-Driven Learning** — Structured lessons covering JavaScript fundamentals
 - **Personalized Onboarding** — Choose avatar, learning goal, experience level, and style
 - **Interactive Code Editor** — Monaco-powered editor with syntax highlighting

@@ -12,7 +12,7 @@
 | Access code generation | ✅ | Format: `ADJECTIVE-NOUN-NN` (e.g., SWIFT-BEAR-73) |
 | Code validation & session restore | ✅ | Via localStorage + manual code entry |
 | Progress tracking | ✅ | Uses `useIdentity` hook with `profileId` |
-| Registration upgrade | ✅ | `/register` page links auth user to profile |
+| Registration upgrade | ✅ | `/signup` page links auth user to profile (unified flow) |
 | Shared header with user info | ✅ | Same header across Dashboard and Lessons |
 | Dashboard info banner | ✅ | Shows access code with copy button |
 | Lesson completion prompt | ✅ | Inline registration prompt for code-based users |
@@ -27,9 +27,10 @@
 | `src/modules/auth/lib/access-code.ts` | Code generation utilities |
 | `src/modules/auth/hooks/useAccessCode.ts` | Code-based auth state |
 | `src/modules/auth/hooks/useIdentity.ts` | Unified identity hook |
-| `src/pages/Register.tsx` | Registration upgrade page |
+| `src/pages/Signup.tsx` | Signup page (handles both new signup and code-based upgrade) |
 | `src/pages/Landing.tsx` | Start Learning flow |
 | `src/modules/layout/components/Header.tsx` | Shared header with user menu |
+| `src/modules/auth/components/AccountSettings.tsx` | Account settings (profile, email, password, preferences) |
 
 ---
 

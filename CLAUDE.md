@@ -14,14 +14,23 @@ src/
 ├── modules/
 │   ├── auth/                     # ✅ Implemented
 │   │   ├── components/
-│   │   │   ├── AuthGuard.tsx     # Protects routes, redirects to /login
+│   │   │   ├── AuthGuard.tsx     # Protects routes (auth or code-based)
 │   │   │   ├── OnboardingGuard.tsx # Ensures onboarding complete
 │   │   │   ├── LoginForm.tsx
-│   │   │   ├── SignupForm.tsx
-│   │   │   └── OnboardingForm.tsx # 4-step: avatar, goal, experience, style
+│   │   │   ├── SignupForm.tsx    # Handles signup + code-based upgrade
+│   │   │   ├── OnboardingForm.tsx # 4-step: avatar, goal, experience, style
+│   │   │   ├── AccountSettings.tsx # Account settings container
+│   │   │   ├── ProfileSection.tsx # Avatar + display name editing
+│   │   │   ├── AccountSection.tsx # Email change
+│   │   │   ├── SecuritySection.tsx # Password change
+│   │   │   └── PreferencesSection.tsx # Learning preferences editing
 │   │   ├── hooks/
 │   │   │   ├── useAuth.ts        # user, session, signIn, signUp, signOut
-│   │   │   └── useStudentProfile.ts # profile, updateProfile, isOnboardingComplete
+│   │   │   ├── useStudentProfile.ts # profile, updateProfile, isOnboardingComplete
+│   │   │   ├── useAccessCode.ts  # Code-based auth: accessCode, profile, createProfile, validateCode
+│   │   │   └── useIdentity.ts    # Unified identity: type, profileId, displayName, avatar
+│   │   ├── lib/
+│   │   │   └── access-code.ts    # generateAccessCode, generateDisplayName, pickRandomAvatar
 │   │   └── index.ts
 │   │
 │   ├── layout/                   # ✅ Implemented
@@ -92,22 +101,29 @@ src/
 ```
 modules           # Lesson groups (Variables, Functions, etc.)
 lessons           # Individual lessons with content + exercises
-student_profiles  # User preferences, skill level, avatar
+student_profiles  # User preferences, skill level, avatar, access_code, auth_user_id
 student_progress  # Completion status per lesson
 exercise_attempts # Code submissions, pass/fail, timing
 tutor_messages    # Chat history with AI tutor
 ```
 
+### Learner States
+- **Anonymous Visitor** — No profile exists, sees landing page
+- **Code-Based Student** — Profile with access_code, auth_user_id is null
+- **Registered Learner** — Profile with auth_user_id linked to Supabase auth
+
 ## Routes
 | Route | Auth | Onboarding | Description |
 |-------|------|------------|-------------|
-| `/` | - | - | Landing page |
-| `/login` | - | - | Sign in |
-| `/signup` | - | - | Create account |
-| `/onboarding` | ✓ | - | 4-step profile setup |
-| `/learn` | ✓ | ✓ | Dashboard |
-| `/learn/:slug` | ✓ | ✓ | Lesson view |
-| `/profile` | ✓ | - | Profile settings |
+| `/` | - | - | Landing page (auto-redirects if authenticated) |
+| `/login` | - | - | Sign in (registered users) |
+| `/signup` | - | - | Create account (or upgrade from code-based) |
+| `/onboarding` | ✓ | - | 4-step profile setup (registered users only) |
+| `/learn` | ✓* | ✓ | Dashboard |
+| `/learn/:slug` | ✓* | ✓ | Lesson view |
+| `/profile` | ✓* | - | Account settings |
+
+*Auth = code-based OR registered user
 
 ## Commands
 ```bash
