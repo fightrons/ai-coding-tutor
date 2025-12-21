@@ -8,6 +8,7 @@ import { useLesson } from '../hooks/useLesson'
 import { useProgress } from '../hooks/useProgress'
 import { LessonContent } from './LessonContent'
 import { ExercisePanel } from './ExercisePanel'
+import logo from '@/assets/logo.png'
 
 interface LessonLayoutProps {
   slug: string
@@ -65,6 +66,10 @@ export function LessonLayout({ slug }: LessonLayoutProps) {
     <div className="min-h-screen flex flex-col">
       {/* Header */}
       <header className="border-b px-6 py-3 flex items-center gap-4">
+        <Link to="/learn" className="flex items-center gap-1 shrink-0">
+          <img src={logo} alt="AI Coding Tutor" className="h-4 w-auto" />
+        </Link>
+        <div className="h-6 w-px bg-border" />
         <Button asChild variant="ghost" size="sm">
           <Link to="/learn">
             <ArrowLeft className="h-4 w-4 mr-2" />
