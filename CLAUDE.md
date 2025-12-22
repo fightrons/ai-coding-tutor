@@ -5,8 +5,8 @@ An adaptive AI programming tutor that teaches JavaScript step-by-step. Curriculu
 
 ## Tech Stack
 - **Frontend**: React (Vite), TypeScript, Tailwind CSS v4, shadcn/ui, Monaco Editor
-- **Backend**: Supabase (Auth, Postgres, RLS), Cloudflare Workers (AI orchestration)
-- **AI**: LLM-based tutor with prompt-driven behavior
+- **Backend**: Supabase (Auth, Postgres, RLS, Edge Functions)
+- **AI**: OpenAI GPT-4o-mini via Supabase Edge Function
 
 ## Project Structure (Module-Based)
 ```
@@ -65,11 +65,26 @@ src/
 │   │   │   └── index.ts          # TestCase, ExecutionResult
 │   │   └── index.ts
 │   │
-│   └── tutor/                    # 🔲 Not yet implemented
+│   └── tutor/                    # ✅ Implemented
 │       ├── components/
+│       │   ├── TutorPanel.tsx    # Collapsible chat sidebar
+│       │   ├── TutorToggle.tsx   # "Ask Anu" button
+│       │   ├── MessageList.tsx   # Chat message display
+│       │   ├── MessageBubble.tsx # Individual message styling
+│       │   ├── MessageInput.tsx  # Chat input with auto-focus
+│       │   └── ProactivePrompt.tsx # "Need help?" prompt
 │       ├── hooks/
+│       │   ├── useTutorMessages.ts # Fetch/save messages to Supabase
+│       │   ├── useTutorContext.ts  # Build AI context from lesson/code
+│       │   ├── useExerciseAttempts.ts # Track failures, trigger help
+│       │   └── useTutorChat.ts   # Main orchestration hook
 │       ├── lib/
-│       └── types/
+│       │   ├── config.ts         # TUTOR_CONFIG (name: "Anu")
+│       │   ├── tutor-service.ts  # Supabase Edge Function client
+│       │   └── prompt-templates.ts # Mock response templates
+│       ├── types/
+│       │   └── index.ts          # TutorMessage, TutorContext, etc.
+│       └── index.ts
 │
 ├── pages/                        # Thin wrappers for routing
 │   ├── Landing.tsx
@@ -137,6 +152,14 @@ npx supabase login
 npx supabase link --project-ref <PROJECT_ID>
 npx supabase db push
 npx supabase gen types typescript --project-id <PROJECT_ID> > src/shared/types/database.ts
+
+# Edge Functions (local development)
+supabase start                                    # Start local Supabase stack
+supabase functions serve --env-file supabase/.env.local  # Serve functions locally
+
+# Edge Functions (production)
+supabase secrets set OPENAI_API_KEY=sk-xxx        # Set OpenAI key
+supabase functions deploy tutor-chat --no-verify-jwt  # Deploy tutor function
 ```
 
 ## Environment Variables
