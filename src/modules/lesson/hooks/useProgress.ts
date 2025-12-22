@@ -60,12 +60,15 @@ export function useProgress() {
       return { error: null }
     }
 
-    const { error } = await supabase.from('student_progress').insert({
-      student_id: profileId,
-      lesson_id: lessonId,
-      status: 'in_progress',
-      started_at: new Date().toISOString(),
-    })
+    const { error } = await supabase.from('student_progress').upsert(
+      {
+        student_id: profileId,
+        lesson_id: lessonId,
+        status: 'in_progress',
+        started_at: new Date().toISOString(),
+      },
+      { onConflict: 'student_id,lesson_id', ignoreDuplicates: true }
+    )
 
     if (error) return { error: error.message }
 

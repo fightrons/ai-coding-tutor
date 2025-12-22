@@ -1,20 +1,42 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type ReactNode } from 'react'
 import { Play, RotateCcw } from 'lucide-react'
 import { Button } from '@/shared/components/ui/button'
 import { CodeEditor } from './CodeEditor'
 import { OutputPanel } from './OutputPanel'
 import { useCodeRunner } from '../hooks/useCodeRunner'
-import type { TestCase } from '../types'
+import type { TestCase, ExecutionResult } from '../types'
 
 interface EditorPanelProps {
   starterCode: string
   testCases: TestCase[]
   onAllTestsPass?: () => void
+  onCodeChange?: (code: string) => void
+  onResult?: (result: ExecutionResult) => void
+  toolbarExtra?: ReactNode
 }
 
-export function EditorPanel({ starterCode, testCases, onAllTestsPass }: EditorPanelProps) {
+export function EditorPanel({
+  starterCode,
+  testCases,
+  onAllTestsPass,
+  onCodeChange,
+  onResult,
+  toolbarExtra,
+}: EditorPanelProps) {
   const [code, setCode] = useState(starterCode)
   const { result, running, run, reset } = useCodeRunner()
+
+  // Notify parent when code changes
+  useEffect(() => {
+    onCodeChange?.(code)
+  }, [code, onCodeChange])
+
+  // Notify parent when result changes
+  useEffect(() => {
+    if (result) {
+      onResult?.(result)
+    }
+  }, [result, onResult])
 
   // Notify parent when all tests pass
   useEffect(() => {
@@ -44,6 +66,12 @@ export function EditorPanel({ starterCode, testCases, onAllTestsPass }: EditorPa
           <RotateCcw className="h-4 w-4 mr-2" />
           Reset
         </Button>
+        {toolbarExtra && (
+          <>
+            <div className="flex-1" />
+            {toolbarExtra}
+          </>
+        )}
       </div>
 
       {/* Editor */}

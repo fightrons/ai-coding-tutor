@@ -40,11 +40,18 @@ export function useStudentProfile() {
         .from('student_profiles')
         .select('*')
         .eq('auth_user_id', user.id)
-        .single()
+        .maybeSingle()
 
       if (error) {
         logger.error('Profile fetch error:', error)
         setState({ profile: null, loading: false, error: error.message })
+        return
+      }
+
+      // No profile yet - user needs to complete onboarding
+      if (!data) {
+        logger.log('No profile found for user, needs onboarding')
+        setState({ profile: null, loading: false, error: null })
         return
       }
 

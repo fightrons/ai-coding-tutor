@@ -1,11 +1,12 @@
-import { useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/shared/components/ui/button'
 import { Skeleton } from '@/shared/components/ui/skeleton'
-import { EditorPanel } from '@/modules/editor'
+import { EditorPanel, type ExecutionResult } from '@/modules/editor'
 import { Header } from '@/modules/layout'
 import { useIdentity } from '@/modules/auth'
+import { TutorPanel, TutorToggle, ProactivePrompt, useTutorChat } from '@/modules/tutor'
 import { useLesson } from '../hooks/useLesson'
 import { useProgress } from '../hooks/useProgress'
 import { LessonContent } from './LessonContent'
@@ -19,6 +20,17 @@ export function LessonLayout({ slug }: LessonLayoutProps) {
   const { type } = useIdentity()
   const { lesson, module, loading, error } = useLesson(slug)
   const { startLesson, completeLesson, getStatus } = useProgress()
+
+  // Track code and results for tutor context
+  const [currentCode, setCurrentCode] = useState('')
+  const [lastResult, setLastResult] = useState<ExecutionResult | null>(null)
+
+  // Tutor chat state
+  const tutor = useTutorChat({
+    lesson,
+    currentCode,
+    lastResult,
+  })
 
   const status = lesson ? getStatus(lesson.id) : 'not_started'
   const isCompleted = status === 'completed'
@@ -131,18 +143,47 @@ export function LessonLayout({ slug }: LessonLayoutProps) {
           </div>
         </div>
 
-        {/* Right panel: Code editor - fixed, internal scroll only */}
-        <div className="flex-1 overflow-hidden">
-          {lesson.exercise ? (
-            <EditorPanel
-              starterCode={lesson.exercise.starterCode}
-              testCases={lesson.exercise.testCases}
-              onAllTestsPass={handleAllTestsPass}
+        {/* Right panel: Code editor + Tutor sidebar */}
+        <div className="flex-1 flex overflow-hidden relative">
+          {/* Editor section */}
+          <div className="flex-1 overflow-hidden">
+            {lesson.exercise ? (
+              <EditorPanel
+                starterCode={lesson.exercise.starterCode}
+                testCases={lesson.exercise.testCases}
+                onAllTestsPass={handleAllTestsPass}
+                onCodeChange={setCurrentCode}
+                onResult={setLastResult}
+                toolbarExtra={
+                  <TutorToggle
+                    isOpen={tutor.isOpen}
+                    onClick={tutor.toggle}
+                    hasNotification={tutor.shouldShowPrompt}
+                  />
+                }
+              />
+            ) : (
+              <div className="h-full flex items-center justify-center text-muted-foreground bg-muted/30">
+                <p>No exercise for this lesson</p>
+              </div>
+            )}
+          </div>
+
+          {/* Tutor sidebar */}
+          <TutorPanel
+            messages={tutor.messages}
+            isOpen={tutor.isOpen}
+            isLoading={tutor.isLoading}
+            onClose={tutor.close}
+            onSendMessage={tutor.sendMessage}
+          />
+
+          {/* Proactive help prompt */}
+          {tutor.shouldShowPrompt && (
+            <ProactivePrompt
+              onAccept={tutor.acceptPrompt}
+              onDismiss={tutor.dismissPrompt}
             />
-          ) : (
-            <div className="h-full flex items-center justify-center text-muted-foreground bg-muted/30">
-              <p>No exercise for this lesson</p>
-            </div>
           )}
         </div>
       </div>
