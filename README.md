@@ -14,16 +14,17 @@ An adaptive AI programming tutor that teaches JavaScript step-by-step with perso
 - **Real-time Code Execution** — Run JavaScript and see output instantly
 - **Automated Testing** — Test cases validate your solutions
 - **Progress Tracking** — Auto-completion when tests pass
+- **AI Tutor (Anu)** — Patient mentor powered by GPT-4o-mini that gives hints, not answers
+- **Proactive Help** — Anu offers assistance after detecting struggles
 
 ### Coming Soon
-- **AI Tutor** — Patient mentor that gives hints, not answers
 - **Adaptive Difficulty** — Adjusts based on student performance
 
 ## Tech Stack
 
 - **Frontend**: React, TypeScript, Tailwind CSS v4, shadcn/ui
-- **Backend**: Supabase (Auth, Postgres, RLS)
-- **AI**: Cloudflare Workers + LLM
+- **Backend**: Supabase (Auth, Postgres, RLS, Edge Functions)
+- **AI**: OpenAI GPT-4o-mini
 - **Editor**: Monaco Editor
 
 ## Getting Started
@@ -82,7 +83,7 @@ src/
 │   ├── layout/       # Header, navigation
 │   ├── lesson/       # Curriculum display, progress tracking
 │   ├── editor/       # Monaco editor, code execution, testing
-│   └── tutor/        # AI tutor (coming soon)
+│   └── tutor/        # AI tutor (Anu)
 ├── pages/            # Route components (thin wrappers)
 ├── shared/           # UI components, utilities, types
 └── App.tsx           # Router configuration
@@ -98,6 +99,14 @@ npm run build     # Production build
 npm run preview   # Preview production build
 npm run lint      # Run ESLint
 ```
+
+## Contributing
+
+**Fightrons, let's build the future of coding education together.**
+
+Every line of code you contribute helps a beginner overcome their fear of programming. Anu isn't just an AI tutor — it's patience that never runs out, encouragement that never fades, and guidance that meets learners exactly where they are.
+
+This is open source with purpose. Jump in.
 
 ## License
 
