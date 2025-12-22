@@ -89,7 +89,10 @@ src/
 └── App.tsx           # Router configuration
 ```
 
-See [CLAUDE.md](./CLAUDE.md) for detailed architecture documentation.
+## Documentation
+
+- [Onboarding Guide](./docs/ONBOARDING.md) — Get started in under 15 minutes
+- [Architecture](./CLAUDE.md) — Detailed project structure and conventions
 
 ## Scripts
 
