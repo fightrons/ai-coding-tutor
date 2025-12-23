@@ -20,6 +20,12 @@ export default defineConfig({
         '**/*.config.*',
         '**/index.ts',
       ],
+      thresholds: {
+        lines: 60,
+        branches: 50,
+        functions: 70,
+        statements: 60,
+      },
     },
   },
   resolve: {
