@@ -93,10 +93,260 @@ A planning and execution guide for upcoming features and improvements.
 **Current**: No tests
 **Priority**: High
 
-- Unit tests for critical modules (`sandbox.ts`, `access-code.ts`, `useTutorChat.ts`)
-- E2E tests for core flows (login → onboarding → lesson completion)
-- Integration tests for Supabase queries and Edge Functions
-- Consider: Vitest + Testing Library + Playwright
+#### Recommended Stack
+
+**Unit/Integration Tests: Vitest + React Testing Library**
+Vitest is the optimal choice for Vite + React projects:
+- Native Vite integration (shares config, transforms, and plugins)
+- Jest-compatible API (familiar syntax, easy migration paths)
+- Fast HMR-based watch mode for rapid development
+- Built-in TypeScript support without additional configuration
+- First-class ESM support
+
+```bash
+npm install -D vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event jsdom @vitest/coverage-v8
+```
+
+**E2E Tests: Playwright (recommended over Puppeteer)**
+Playwright offers significant advantages:
+- Multi-browser support (Chromium, Firefox, WebKit/Safari)
+- Superior TypeScript integration
+- Built-in auto-waiting (more reliable than manual waits)
+- Excellent Vite integration via `@playwright/test`
+- Parallel test execution out of the box
+- Built-in test generator and trace viewer for debugging
+
+```bash
+npm install -D @playwright/test
+npx playwright install
+```
+
+**Alternative: Puppeteer** (if Chrome-only or specific CI requirements)
+- Chrome/Chromium-focused
+- Lower-level API, more control
+- Smaller bundle if only Chrome is needed
+
+```bash
+npm install -D puppeteer jest-puppeteer @types/puppeteer
+```
+
+#### Configuration Files
+
+**vitest.config.ts**
+```typescript
+import { defineConfig } from 'vitest/config'
+import react from '@vitejs/plugin-react'
+import path from 'path'
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./src/test/setup.ts'],
+    include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      exclude: ['node_modules/', 'src/test/'],
+    },
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+})
+```
+
+**playwright.config.ts**
+```typescript
+import { defineConfig, devices } from '@playwright/test'
+
+export default defineConfig({
+  testDir: './e2e',
+  fullyParallel: true,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 2 : 0,
+  workers: process.env.CI ? 1 : undefined,
+  reporter: 'html',
+  use: {
+    baseURL: 'http://localhost:5173',
+    trace: 'on-first-retry',
+  },
+  projects: [
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
+    { name: 'webkit', use: { ...devices['Desktop Safari'] } },
+  ],
+  webServer: {
+    command: 'npm run dev',
+    url: 'http://localhost:5173',
+    reuseExistingServer: !process.env.CI,
+  },
+})
+```
+
+**src/test/setup.ts**
+```typescript
+import '@testing-library/jest-dom'
+import { cleanup } from '@testing-library/react'
+import { afterEach } from 'vitest'
+
+afterEach(() => {
+  cleanup()
+})
+```
+
+#### Package.json Scripts
+```json
+{
+  "scripts": {
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed"
+  }
+}
+```
+
+#### Priority Test Coverage
+
+**High Priority - Unit Tests**
+| Module | File | Why |
+|--------|------|-----|
+| Editor | `sandbox.ts` | Core code execution logic, security-critical |
+| Auth | `access-code.ts` | Code generation, validation logic |
+| Tutor | `useTutorChat.ts` | Complex state management, API orchestration |
+| Tutor | `useTutorContext.ts` | Context building for AI prompts |
+| Lesson | `useProgress.ts` | Progress tracking calculations |
+
+**High Priority - Integration Tests**
+| Area | Scope |
+|------|-------|
+| Auth hooks | `useAuth`, `useAccessCode` with mocked Supabase |
+| Lesson hooks | `useLesson`, `useModules` with mocked data |
+| Tutor service | `tutor-service.ts` with mocked Edge Function |
+
+**High Priority - E2E Tests**
+| Flow | Steps |
+|------|-------|
+| Code-based access | Landing → Enter code → Dashboard |
+| Full registration | Signup → Onboarding (4 steps) → Dashboard |
+| Lesson completion | Dashboard → Lesson → Write code → Pass exercise → Next lesson |
+| Tutor interaction | Open tutor → Ask question → Receive response |
+| Account settings | Profile → Update avatar/name → Verify persistence |
+
+#### Test File Structure
+```
+src/
+├── modules/
+│   ├── auth/
+│   │   ├── hooks/
+│   │   │   ├── useAuth.ts
+│   │   │   └── useAuth.test.ts
+│   │   └── lib/
+│   │       ├── access-code.ts
+│   │       └── access-code.test.ts
+│   ├── editor/
+│   │   └── lib/
+│   │       ├── sandbox.ts
+│   │       └── sandbox.test.ts
+│   └── tutor/
+│       └── hooks/
+│           ├── useTutorChat.ts
+│           └── useTutorChat.test.ts
+├── test/
+│   ├── setup.ts
+│   ├── mocks/
+│   │   ├── supabase.ts
+│   │   └── handlers.ts (MSW)
+│   └── utils/
+│       └── render.tsx (custom render with providers)
+e2e/
+├── auth.spec.ts
+├── lesson-flow.spec.ts
+├── tutor.spec.ts
+└── fixtures/
+    └── test-user.json
+```
+
+#### Mocking Strategy
+
+**Supabase Mocking** (for unit/integration tests)
+```typescript
+// src/test/mocks/supabase.ts
+import { vi } from 'vitest'
+
+export const mockSupabase = {
+  auth: {
+    getSession: vi.fn(),
+    signInWithPassword: vi.fn(),
+    signUp: vi.fn(),
+    signOut: vi.fn(),
+    onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
+  },
+  from: vi.fn(() => ({
+    select: vi.fn().mockReturnThis(),
+    insert: vi.fn().mockReturnThis(),
+    update: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    single: vi.fn(),
+  })),
+  functions: {
+    invoke: vi.fn(),
+  },
+}
+
+vi.mock('@/shared/lib/supabase', () => ({
+  supabase: mockSupabase,
+}))
+```
+
+**MSW for API Mocking** (optional, for more realistic integration tests)
+```bash
+npm install -D msw
+```
+
+#### CI Integration (GitHub Actions)
+```yaml
+# .github/workflows/test.yml
+name: Tests
+on: [push, pull_request]
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run test:run
+      - run: npm run test:coverage
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npx playwright install --with-deps
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+```
 
 ### Caching & State Management
 **Current**: Fresh fetches on every navigation
@@ -181,6 +431,54 @@ A planning and execution guide for upcoming features and improvements.
 
 ## Analytics & Monitoring
 
+### Activity Definition
+**Current**: No activity tracking
+**Goal**: Define and track user activity for engagement metrics
+
+#### What Counts as Activity?
+Need to decide which actions constitute "activity" for tracking purposes:
+
+| Action | Counts? | Notes |
+|--------|---------|-------|
+| **Page Load (Authenticated)** | ❓ | Minimum bar - user opened the app |
+| **Click "Continue" to current lesson** | ❓ | Shows intent to resume learning |
+| **View lesson content** | ❓ | Passive engagement |
+| **Run code in editor** | ❓ | Active coding practice |
+| **Submit exercise attempt** | ❓ | Explicit learning action |
+| **Ask tutor a question** | ❓ | Active engagement with AI |
+| **Complete a lesson** | ❓ | Milestone achievement |
+| **Idle time on lesson page** | ❓ | May indicate reading/thinking |
+
+#### Proposed Activity Tiers
+
+**Tier 1: Passive Activity** (updates "last seen")
+- Loading any authenticated page
+- Navigating between lessons
+- Opening tutor panel
+
+**Tier 2: Active Engagement** (counts toward daily activity)
+- Running code in editor
+- Submitting exercise attempts
+- Asking tutor questions
+- Clicking hints
+
+**Tier 3: Learning Milestones** (achievements/streaks)
+- Completing a lesson
+- Passing an exercise on first attempt
+- Multiple correct submissions in a session
+
+#### Implementation Considerations
+- Store `last_activity_at` timestamp on `student_profiles`
+- Separate `last_active_date` for daily streak calculation
+- Consider debouncing (e.g., multiple code runs within 1 min = 1 activity)
+- Decide: Does opening app count for streak, or must user complete something?
+
+#### Open Questions
+1. Should page load alone maintain a streak?
+2. Minimum engagement time per session?
+3. Track per-lesson activity vs global activity?
+4. Privacy: How long to retain detailed activity logs?
+
 ### Learning Analytics
 - Event tracking: lesson start, code execution, hint requests, completion
 - Time-to-completion metrics
@@ -233,3 +531,4 @@ When picking up an enhancement:
 ---
 
 *Last updated: December 2024*
+*Testing section expanded: December 2024*
