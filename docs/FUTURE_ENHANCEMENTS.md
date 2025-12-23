@@ -274,41 +274,60 @@ e2e/
     └── test-user.json
 ```
 
-#### Mocking Strategy
+#### Testing Strategy: Local Supabase vs Mocking
 
-**Supabase Mocking** (for unit/integration tests)
-```typescript
-// src/test/mocks/supabase.ts
-import { vi } from 'vitest'
-
-export const mockSupabase = {
-  auth: {
-    getSession: vi.fn(),
-    signInWithPassword: vi.fn(),
-    signUp: vi.fn(),
-    signOut: vi.fn(),
-    onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
-  },
-  from: vi.fn(() => ({
-    select: vi.fn().mockReturnThis(),
-    insert: vi.fn().mockReturnThis(),
-    update: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockReturnThis(),
-    single: vi.fn(),
-  })),
-  functions: {
-    invoke: vi.fn(),
-  },
-}
-
-vi.mock('@/shared/lib/supabase', () => ({
-  supabase: mockSupabase,
-}))
+**Prefer Local Supabase** for integration and E2E tests:
+```bash
+supabase start   # Spins up local Postgres, Auth, Edge Functions
 ```
 
-**MSW for API Mocking** (optional, for more realistic integration tests)
+Benefits of local Supabase:
+- Tests real RLS policies
+- Tests actual auth flows
+- Tests Edge Functions locally
+- Catches bugs that mocks would miss
+- Already part of the dev workflow
+
+| Test Type | Approach |
+|-----------|----------|
+| Unit (pure logic) | No DB needed, or minimal mocking |
+| Integration (hooks, queries) | Local Supabase |
+| E2E (Playwright) | Local Supabase |
+| CI pipeline | Local Supabase via `supabase start` |
+
+**Mocking** — use sparingly, only for:
+- Pure utility functions (e.g., `access-code.ts` string generation)
+- Simulating specific error states (network failure, timeout)
+- Component render tests that don't need real data
+
+```typescript
+// src/test/mocks/supabase.ts (for edge cases only)
+import { vi } from 'vitest'
+
+export const mockSupabaseError = {
+  from: vi.fn(() => ({
+    select: vi.fn().mockRejectedValue(new Error('Network error')),
+  })),
+}
+```
+
+#### Test Environment Setup
+
+**Local development & CI test environment:**
 ```bash
-npm install -D msw
+# .env.test (points to local Supabase)
+VITE_SUPABASE_URL=http://localhost:54321
+VITE_SUPABASE_ANON_KEY=<local-anon-key-from-supabase-start>
+```
+
+**Seed data for tests:**
+```bash
+# supabase/seed.sql - runs automatically with supabase start
+INSERT INTO modules (id, title, slug, order_index) VALUES
+  ('test-module-1', 'Test Module', 'test-module', 1);
+
+INSERT INTO lessons (id, module_id, title, slug, order_index) VALUES
+  ('test-lesson-1', 'test-module-1', 'Test Lesson', 'test-lesson', 1);
 ```
 
 #### CI Integration (GitHub Actions)
@@ -327,8 +346,13 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - run: npm ci
+      - name: Start local Supabase
+        run: npx supabase start
       - run: npm run test:run
       - run: npm run test:coverage
+      - name: Stop Supabase
+        if: always()
+        run: npx supabase stop
 
   e2e-tests:
     runs-on: ubuntu-latest
@@ -339,8 +363,13 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - run: npm ci
+      - name: Start local Supabase
+        run: npx supabase start
       - run: npx playwright install --with-deps
       - run: npm run test:e2e
+      - name: Stop Supabase
+        if: always()
+        run: npx supabase stop
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
