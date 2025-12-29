@@ -2,8 +2,11 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
+import { SplashScreen } from '@/shared/components/SplashScreen'
 import { useIdentity, useAccessCode } from '@/modules/auth'
 import logo from '@/assets/logo.png'
+
+const MINIMUM_SPLASH_DURATION = 2000 // 2 second
 
 export function Landing() {
   const navigate = useNavigate()
@@ -15,13 +18,23 @@ export function Landing() {
   const [isCreating, setIsCreating] = useState(false)
   const [isValidating, setIsValidating] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+  const [minTimeElapsed, setMinTimeElapsed] = useState(false)
 
-  // Auto-redirect if already authenticated
+  // Ensure splash shows for minimum duration
   useEffect(() => {
-    if (!loading && isAuthenticated) {
+    const timer = setTimeout(() => {
+      setMinTimeElapsed(true)
+    }, MINIMUM_SPLASH_DURATION)
+
+    return () => clearTimeout(timer)
+  }, [])
+
+  // Auto-redirect if already authenticated (after splash completes)
+  useEffect(() => {
+    if (!loading && minTimeElapsed && isAuthenticated) {
       navigate('/learn')
     }
-  }, [loading, isAuthenticated, navigate])
+  }, [loading, minTimeElapsed, isAuthenticated, navigate])
 
   async function handleStartLearning() {
     setIsCreating(true)
@@ -56,9 +69,9 @@ export function Landing() {
     }
   }
 
-  // Don't render until we know auth state
-  if (loading) {
-    return null
+  // Show splash screen until both: auth loaded AND minimum time elapsed
+  if (loading || !minTimeElapsed) {
+    return <SplashScreen />
   }
 
   return (
