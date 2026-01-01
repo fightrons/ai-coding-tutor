@@ -87,6 +87,7 @@ export function useStudentProfile() {
 
   const isOnboardingComplete = Boolean(
     state.profile
+    && state.profile.age_group
     && state.profile.learning_goal
     && state.profile.prior_experience
   )

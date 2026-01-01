@@ -11,7 +11,7 @@ export function SplashScreen({ tagline = 'Keep learning...' }: SplashScreenProps
         {/* Logo */}
         <img
           src={logo}
-          alt="Fightrons"
+          alt="AI Coding Tutor"
           className="h-10 w-auto animate-fade-in"
         />
 

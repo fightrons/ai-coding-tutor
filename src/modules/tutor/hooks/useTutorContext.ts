@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useIdentity } from '@/modules/auth'
+import { useIdentity, useStudentProfile } from '@/modules/auth'
 import type { ExecutionResult } from '@/modules/editor'
 import type { Lesson } from '@/modules/lesson'
 import type { TutorContext, TutorMessage } from '../types'
@@ -17,6 +17,7 @@ export function useTutorContext(
   options: UseTutorContextOptions
 ): TutorContext | null {
   const { displayName } = useIdentity()
+  const { profile } = useStudentProfile()
   const { lesson, currentCode, lastResult, messages, hintLevel, attemptCount } =
     options
 
@@ -57,9 +58,10 @@ export function useTutorContext(
       availableHints,
 
       studentName: displayName || 'Student',
-      learningGoal: null, // Can be enhanced to fetch from profile
-      priorExperience: null,
-      preferredStyle: null,
+      ageGroup: profile?.age_group || null,
+      learningGoal: profile?.learning_goal || null,
+      priorExperience: profile?.prior_experience || null,
+      preferredStyle: profile?.preferred_style || null,
 
       currentCode,
       lastError: lastResult?.error || null,
@@ -72,6 +74,7 @@ export function useTutorContext(
   }, [
     lesson,
     displayName,
+    profile,
     currentCode,
     lastResult,
     messages,

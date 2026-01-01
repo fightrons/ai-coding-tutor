@@ -36,6 +36,7 @@ export interface TutorContext {
 
   // Student info
   studentName: string
+  ageGroup: string | null
   learningGoal: string | null
   priorExperience: string | null
   preferredStyle: string | null

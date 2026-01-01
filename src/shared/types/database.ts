@@ -151,6 +151,7 @@ export type Database = {
       student_profiles: {
         Row: {
           access_code: string | null
+          age_group: string | null
           auth_user_id: string | null
           avatar_emoji: string | null
           created_at: string | null
@@ -165,6 +166,7 @@ export type Database = {
         }
         Insert: {
           access_code?: string | null
+          age_group?: string | null
           auth_user_id?: string | null
           avatar_emoji?: string | null
           created_at?: string | null
@@ -179,6 +181,7 @@ export type Database = {
         }
         Update: {
           access_code?: string | null
+          age_group?: string | null
           auth_user_id?: string | null
           avatar_emoji?: string | null
           created_at?: string | null

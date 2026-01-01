@@ -10,9 +10,17 @@ import { Avatar } from '@/shared/components/Avatar'
 import { AvatarPicker } from '@/shared/components/AvatarPicker'
 import { useStudentProfile } from '../hooks/useStudentProfile'
 
-type Step = 'avatar' | 'goal' | 'experience' | 'style'
+type Step = 'age_group' | 'avatar' | 'goal' | 'experience' | 'style'
 
-const STEPS: Step[] = ['avatar', 'goal', 'experience', 'style']
+const STEPS: Step[] = ['age_group', 'avatar', 'goal', 'experience', 'style']
+
+const AGE_GROUPS = [
+  { value: 'under_13', label: 'Under 13', description: 'Young coder starting early' },
+  { value: '13-17', label: '13-17', description: 'Teen programmer' },
+  { value: '18-25', label: '18-25', description: 'College or early career' },
+  { value: '26-35', label: '26-35', description: 'Career builder' },
+  { value: '36+', label: '36+', description: 'Lifelong learner' },
+]
 
 const GOALS = [
   { value: 'build_websites', label: 'Build websites', description: 'Create interactive web pages and apps' },
@@ -34,6 +42,9 @@ const STYLES = [
 ]
 
 const onboardingSchema = z.object({
+  age_group: z.enum(['under_13', '13-17', '18-25', '26-35', '36+'], {
+    message: 'Please select your age group',
+  }),
   avatar: z.string().min(1, 'Please choose an avatar'),
   goal: z.string().min(1, 'Please select a goal'),
   experience: z.enum(['none', 'some', 'other_language'], {
@@ -49,7 +60,7 @@ type OnboardingFormData = z.infer<typeof onboardingSchema>
 export function OnboardingForm() {
   const navigate = useNavigate()
   const { updateProfile } = useStudentProfile()
-  const [step, setStep] = useState<Step>('avatar')
+  const [step, setStep] = useState<Step>('age_group')
   const [serverError, setServerError] = useState<string | null>(null)
 
   const {
@@ -60,6 +71,7 @@ export function OnboardingForm() {
   } = useForm<OnboardingFormData>({
     resolver: zodResolver(onboardingSchema),
     defaultValues: {
+      age_group: undefined,
       avatar: '😊',
       goal: '',
       experience: undefined,
@@ -73,6 +85,7 @@ export function OnboardingForm() {
     setServerError(null)
 
     const { error } = await updateProfile({
+      age_group: data.age_group,
       avatar_emoji: data.avatar,
       learning_goal: data.goal,
       prior_experience: data.experience,
@@ -89,18 +102,21 @@ export function OnboardingForm() {
   }
 
   function handleNext() {
-    if (step === 'avatar') setStep('goal')
+    if (step === 'age_group') setStep('avatar')
+    else if (step === 'avatar') setStep('goal')
     else if (step === 'goal') setStep('experience')
     else if (step === 'experience') setStep('style')
   }
 
   function handleBack() {
-    if (step === 'goal') setStep('avatar')
+    if (step === 'avatar') setStep('age_group')
+    else if (step === 'goal') setStep('avatar')
     else if (step === 'experience') setStep('goal')
     else if (step === 'style') setStep('experience')
   }
 
   const canProceed =
+    (step === 'age_group' && watchedValues.age_group) ||
     (step === 'avatar' && watchedValues.avatar) ||
     (step === 'goal' && watchedValues.goal) ||
     (step === 'experience' && watchedValues.experience) ||
@@ -108,6 +124,36 @@ export function OnboardingForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      {step === 'age_group' && (
+        <div className="space-y-4">
+          <div>
+            <h2 className="text-lg font-semibold">What's your age group?</h2>
+            <p className="text-sm text-muted-foreground">This helps us present concepts in the best way for you</p>
+          </div>
+          <Controller
+            name="age_group"
+            control={control}
+            render={({ field }) => (
+              <RadioGroup value={field.value} onValueChange={field.onChange} className="space-y-3">
+                {AGE_GROUPS.map((option) => (
+                  <Label
+                    key={option.value}
+                    htmlFor={`age-${option.value}`}
+                    className="flex items-start space-x-3 border rounded-lg p-4 cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary"
+                  >
+                    <RadioGroupItem value={option.value} id={`age-${option.value}`} className="mt-0.5" />
+                    <div>
+                      <div className="font-medium">{option.label}</div>
+                      <div className="text-sm text-muted-foreground">{option.description}</div>
+                    </div>
+                  </Label>
+                ))}
+              </RadioGroup>
+            )}
+          />
+        </div>
+      )}
+
       {step === 'avatar' && (
         <div className="space-y-4">
           <div className="text-center">
@@ -222,7 +268,7 @@ export function OnboardingForm() {
       {serverError && <p className="text-sm text-destructive">{serverError}</p>}
 
       <div className="flex gap-3">
-        {step !== 'avatar' && (
+        {step !== 'age_group' && (
           <Button type="button" variant="outline" onClick={handleBack} disabled={isSubmitting}>
             Back
           </Button>

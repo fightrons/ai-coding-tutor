@@ -76,9 +76,12 @@ export function Landing() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-8 relative">
-      <h1 className="text-4xl font-bold mb-4">Learn JavaScript</h1>
+      <h1 className="text-4xl font-bold mb-2">Learn Programming</h1>
+      <p className="text-lg text-muted-foreground mb-2 text-center max-w-md">
+        Build a strong foundation with JavaScript
+      </p>
       <p className="text-muted-foreground mb-2 text-center max-w-md">
-        An adaptive AI tutor that teaches you programming step-by-step.
+        An adaptive AI tutor that teaches you step-by-step.
       </p>
       <p className="text-sm text-muted-foreground mb-8">
         No sign-up required. Start learning for free.

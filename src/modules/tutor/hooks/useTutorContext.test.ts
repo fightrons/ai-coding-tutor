@@ -5,10 +5,22 @@ import type { Lesson } from '@/modules/lesson'
 import type { ExecutionResult } from '@/modules/editor'
 import type { TutorMessage } from '../types'
 
-// Mock useIdentity
+// Mock useIdentity and useStudentProfile
 vi.mock('@/modules/auth', () => ({
   useIdentity: vi.fn().mockReturnValue({
     displayName: 'Test Student',
+  }),
+  useStudentProfile: vi.fn().mockReturnValue({
+    profile: {
+      id: 'profile-1',
+      auth_user_id: 'user-1',
+      display_name: 'Test Student',
+      avatar_emoji: '🦊',
+      age_group: '18-25',
+      learning_goal: 'build_websites',
+      prior_experience: 'some',
+      preferred_style: 'examples',
+    },
   }),
 }))
 
@@ -246,6 +258,66 @@ describe('useTutorContext', () => {
       )
 
       expect(result.current?.studentName).toBe('Test Student')
+    })
+
+    it('includes age group from profile', () => {
+      const { result } = renderHook(() =>
+        useTutorContext({
+          lesson: createLesson(),
+          currentCode: '',
+          lastResult: null,
+          messages: [],
+          hintLevel: 0,
+          attemptCount: 0,
+        })
+      )
+
+      expect(result.current?.ageGroup).toBe('18-25')
+    })
+
+    it('includes learning goal from profile', () => {
+      const { result } = renderHook(() =>
+        useTutorContext({
+          lesson: createLesson(),
+          currentCode: '',
+          lastResult: null,
+          messages: [],
+          hintLevel: 0,
+          attemptCount: 0,
+        })
+      )
+
+      expect(result.current?.learningGoal).toBe('build_websites')
+    })
+
+    it('includes prior experience from profile', () => {
+      const { result } = renderHook(() =>
+        useTutorContext({
+          lesson: createLesson(),
+          currentCode: '',
+          lastResult: null,
+          messages: [],
+          hintLevel: 0,
+          attemptCount: 0,
+        })
+      )
+
+      expect(result.current?.priorExperience).toBe('some')
+    })
+
+    it('includes preferred style from profile', () => {
+      const { result } = renderHook(() =>
+        useTutorContext({
+          lesson: createLesson(),
+          currentCode: '',
+          lastResult: null,
+          messages: [],
+          hintLevel: 0,
+          attemptCount: 0,
+        })
+      )
+
+      expect(result.current?.preferredStyle).toBe('examples')
     })
   })
 
