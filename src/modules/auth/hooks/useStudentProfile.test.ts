@@ -10,7 +10,6 @@ vi.mock('./useAuth', () => ({
 // Mock Supabase with chainable API
 let mockMaybeSingleResult: ReturnType<typeof vi.fn>
 let mockSingleResult: ReturnType<typeof vi.fn>
-let mockUpdateResult: ReturnType<typeof vi.fn>
 
 const createMockChain = () => {
   const chain: Record<string, ReturnType<typeof vi.fn>> = {}
@@ -40,7 +39,6 @@ describe('useStudentProfile', () => {
     // Create fresh mocks with default return values
     mockMaybeSingleResult = vi.fn().mockResolvedValue({ data: null, error: null })
     mockSingleResult = vi.fn().mockResolvedValue({ data: null, error: null })
-    mockUpdateResult = vi.fn().mockResolvedValue({ error: null })
     mockChain = createMockChain()
   })
 

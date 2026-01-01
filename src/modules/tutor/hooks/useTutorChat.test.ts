@@ -62,8 +62,12 @@ describe('useTutorChat', () => {
     title: 'Test Lesson',
     content: { sections: [] },
     exercise: null,
-    module: { id: 'module-1', title: 'Test Module', order: 1 },
-    order: 1,
+    module_id: 'module-1',
+    sequence_order: 1,
+    created_at: '2024-01-01T00:00:00Z',
+    difficulty: null,
+    estimated_minutes: null,
+    prerequisites: null,
     ...overrides,
   })
 
@@ -71,7 +75,7 @@ describe('useTutorChat', () => {
     output: 'test output',
     error: passed ? null : 'test error',
     testResults: passed ? [{ name: 'test', passed: true, expected: '', actual: '' }] : [],
-    allTestsPassed: passed,
+    allPassed: passed,
   })
 
   beforeEach(() => {
@@ -222,13 +226,13 @@ describe('useTutorChat', () => {
   describe('result change effects', () => {
     it('records attempt when lastResult changes', () => {
       const { rerender } = renderHook(
-        ({ lastResult, currentCode }) =>
+        ({ lastResult, currentCode }: { lastResult: ExecutionResult | null; currentCode: string }) =>
           useTutorChat({
             lesson: createLesson(),
             currentCode,
             lastResult,
           }),
-        { initialProps: { lastResult: null, currentCode: '' } }
+        { initialProps: { lastResult: null as ExecutionResult | null, currentCode: '' } }
       )
 
       const result = createResult(true)

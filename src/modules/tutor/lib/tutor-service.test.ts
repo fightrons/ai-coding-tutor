@@ -11,6 +11,7 @@ function createContext(overrides: Partial<TutorContext> = {}): TutorContext {
     exerciseDescription: 'Create a variable and print it',
     availableHints: ['Think about var, let, const', 'Use console.log'],
     studentName: 'Test Student',
+    ageGroup: null,
     learningGoal: null,
     priorExperience: null,
     preferredStyle: null,

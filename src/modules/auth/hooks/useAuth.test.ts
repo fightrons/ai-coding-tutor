@@ -93,7 +93,7 @@ describe('useAuth', () => {
       const newSession = { user: newUser, access_token: 'new-token' }
 
       act(() => {
-        const callback = (global as Record<string, (e: string, s: unknown) => void>).__authCallback
+        const callback = (global as unknown as Record<string, (e: string, s: unknown) => void>).__authCallback
         callback('SIGNED_IN', newSession)
       })
 

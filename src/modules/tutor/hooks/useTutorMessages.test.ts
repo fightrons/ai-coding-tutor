@@ -10,7 +10,6 @@ vi.mock('@/modules/auth', () => ({
 // Mock Supabase with chainable API
 let mockOrderResult: ReturnType<typeof vi.fn>
 let mockSingleResult: ReturnType<typeof vi.fn>
-let mockDeleteResult: ReturnType<typeof vi.fn>
 
 const createMockChain = () => {
   const chain: Record<string, ReturnType<typeof vi.fn>> = {}
@@ -41,7 +40,6 @@ describe('useTutorMessages', () => {
     // Create fresh mocks with default return values
     mockOrderResult = vi.fn().mockResolvedValue({ data: [], error: null })
     mockSingleResult = vi.fn().mockResolvedValue({ data: null, error: null })
-    mockDeleteResult = vi.fn().mockResolvedValue({ error: null })
     mockChain = createMockChain()
   })
 
