@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { SecuritySection } from './SecuritySection'
 
@@ -103,8 +103,10 @@ describe('SecuritySection', () => {
         expect(screen.getByText(/password updated/i)).toBeInTheDocument()
       })
 
-      // Advance timer past the auto-close delay
-      vi.advanceTimersByTime(2000)
+      // Advance timer past the auto-close delay - wrap in act() for state updates
+      await act(async () => {
+        vi.advanceTimersByTime(2000)
+      })
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /change/i })).toBeInTheDocument()

@@ -47,6 +47,11 @@ describe('useAuth', () => {
       expect(result.current.loading).toBe(true)
       expect(result.current.user).toBeNull()
       expect(result.current.session).toBeNull()
+
+      // Wait for async session fetch to complete to avoid act() warning
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false)
+      })
     })
 
     it('loads session and sets user on mount', async () => {

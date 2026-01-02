@@ -71,10 +71,10 @@ export function OnboardingForm() {
   } = useForm<OnboardingFormData>({
     resolver: zodResolver(onboardingSchema),
     defaultValues: {
-      age_group: undefined,
+      age_group: '' as unknown as OnboardingFormData['age_group'],
       avatar: '😊',
       goal: '',
-      experience: undefined,
+      experience: '' as unknown as OnboardingFormData['experience'],
       style: 'examples',
     },
   })

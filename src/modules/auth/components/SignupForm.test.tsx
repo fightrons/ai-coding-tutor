@@ -34,13 +34,21 @@ vi.mock('../hooks/useAccessCode', () => ({
 }))
 
 describe('SignupForm', () => {
+  const originalConsoleError = console.error
+
   beforeEach(() => {
     vi.clearAllMocks()
+    // Suppress expected error logs from component
+    console.error = vi.fn()
     mockUseAccessCode.mockReturnValue({
       accessCode: null,
       profile: null,
       clearAccessCode: mockClearAccessCode,
     })
+  })
+
+  afterEach(() => {
+    console.error = originalConsoleError
   })
 
   describe('rendering', () => {

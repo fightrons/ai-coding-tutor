@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { PreferencesSection } from './PreferencesSection'
 
@@ -181,7 +181,9 @@ describe('PreferencesSection', () => {
         expect(screen.getByText(/preferences updated/i)).toBeInTheDocument()
       })
 
-      vi.advanceTimersByTime(2000)
+      await act(async () => {
+        vi.advanceTimersByTime(2000)
+      })
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /edit preferences/i })).toBeInTheDocument()
