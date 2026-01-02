@@ -1,6 +1,16 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { MockTutorService } from './tutor-service'
+import { MockTutorService, SupabaseTutorService, createTutorService, getTutorService } from './tutor-service'
 import type { TutorContext, TutorRequest } from '../types'
+
+// Mock supabase
+const mockInvoke = vi.fn()
+vi.mock('@/shared/lib/supabase', () => ({
+  supabase: {
+    functions: {
+      invoke: (name: string, options: { body: unknown }) => mockInvoke(name, options),
+    },
+  },
+}))
 
 // Helper to create a minimal TutorContext
 function createContext(overrides: Partial<TutorContext> = {}): TutorContext {
@@ -243,5 +253,66 @@ describe('MockTutorService', () => {
         expect(response.content.toLowerCase()).toContain('syntax')
       })
     })
+  })
+})
+
+describe('SupabaseTutorService', () => {
+  let service: SupabaseTutorService
+
+  beforeEach(() => {
+    service = new SupabaseTutorService()
+    vi.clearAllMocks()
+  })
+
+  it('calls the tutor-chat edge function', async () => {
+    const mockResponse = { content: 'Hello!', messageType: 'explanation' }
+    mockInvoke.mockResolvedValue({ data: mockResponse, error: null })
+
+    const request = createRequest('Help me')
+    const response = await service.generateResponse(request)
+
+    expect(mockInvoke).toHaveBeenCalledWith('tutor-chat', { body: request })
+    expect(response).toEqual(mockResponse)
+  })
+
+  it('throws error when edge function fails', async () => {
+    mockInvoke.mockResolvedValue({ data: null, error: { message: 'Function error' } })
+
+    const request = createRequest('Help me')
+
+    await expect(service.generateResponse(request)).rejects.toThrow('Tutor API error: Function error')
+  })
+})
+
+describe('createTutorService', () => {
+  const originalEnv = import.meta.env.VITE_USE_MOCK_TUTOR
+
+  afterEach(() => {
+    // Restore original env
+    if (originalEnv !== undefined) {
+      import.meta.env.VITE_USE_MOCK_TUTOR = originalEnv
+    } else {
+      delete import.meta.env.VITE_USE_MOCK_TUTOR
+    }
+  })
+
+  it('returns SupabaseTutorService by default', () => {
+    delete import.meta.env.VITE_USE_MOCK_TUTOR
+    const service = createTutorService()
+    expect(service).toBeInstanceOf(SupabaseTutorService)
+  })
+
+  it('returns MockTutorService when VITE_USE_MOCK_TUTOR is true', () => {
+    import.meta.env.VITE_USE_MOCK_TUTOR = 'true'
+    const service = createTutorService()
+    expect(service).toBeInstanceOf(MockTutorService)
+  })
+})
+
+describe('getTutorService', () => {
+  it('returns a singleton instance', () => {
+    const service1 = getTutorService()
+    const service2 = getTutorService()
+    expect(service1).toBe(service2)
   })
 })
