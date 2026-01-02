@@ -9,82 +9,149 @@ import {
 
 describe('access-code', () => {
   describe('generateAccessCode', () => {
-    it('generates code in WORD-WORD-NN format', () => {
+    it('should generate code in WORD-WORD-NN format', () => {
+      // Act
       const code = generateAccessCode()
+
+      // Assert
       expect(code).toMatch(/^[A-Z]+-[A-Z]+-\d{2}$/)
     })
 
-    it('generates different codes on multiple calls', () => {
-      const codes = new Set(Array.from({ length: 10 }, () => generateAccessCode()))
-      // Should have at least 5 unique codes out of 10 (statistically very likely)
+    it('should generate unique codes on multiple calls', () => {
+      // Arrange
+      const numberOfCalls = 10
+
+      // Act
+      const codes = new Set(Array.from({ length: numberOfCalls }, () => generateAccessCode()))
+
+      // Assert - Should have at least 5 unique codes out of 10 (statistically very likely)
       expect(codes.size).toBeGreaterThanOrEqual(5)
     })
   })
 
   describe('generateDisplayName', () => {
-    it('generates name in "Adjective Animal" format', () => {
+    it('should generate name in "Adjective Animal" format', () => {
+      // Act
       const name = generateDisplayName()
+
+      // Assert
       expect(name).toMatch(/^[A-Z][a-z]+ [A-Z][a-z]+$/)
     })
 
-    it('generates two-word names', () => {
+    it('should generate two-word names', () => {
+      // Act
       const name = generateDisplayName()
       const words = name.split(' ')
+
+      // Assert
       expect(words).toHaveLength(2)
     })
   })
 
   describe('pickRandomAvatar', () => {
-    it('returns an emoji', () => {
+    it('should return a non-empty emoji string', () => {
+      // Act
       const avatar = pickRandomAvatar()
-      // Emoji regex - checks for common emoji patterns
+
+      // Assert
       expect(avatar.length).toBeGreaterThan(0)
       expect(avatar.length).toBeLessThanOrEqual(4) // Most emojis are 1-2 chars (some with modifiers)
     })
 
-    it('returns a valid avatar emoji from the curated list', () => {
+    it('should return an avatar from the curated list', () => {
+      // Arrange
       const validAvatars = [
         '🐼', '🦊', '🦉', '🐻', '🐺',
         '🐯', '🦅', '🦌', '🦁', '🐸',
         '🦄', '🐙', '🦋', '🌟', '🚀',
       ]
+
+      // Act
       const avatar = pickRandomAvatar()
+
+      // Assert
       expect(validAvatars).toContain(avatar)
     })
   })
 
   describe('normalizeAccessCode', () => {
-    it('converts to uppercase', () => {
-      expect(normalizeAccessCode('swift-bear-73')).toBe('SWIFT-BEAR-73')
+    it('should convert lowercase to uppercase', () => {
+      // Act
+      const result = normalizeAccessCode('swift-bear-73')
+
+      // Assert
+      expect(result).toBe('SWIFT-BEAR-73')
     })
 
-    it('trims whitespace', () => {
-      expect(normalizeAccessCode('  SWIFT-BEAR-73  ')).toBe('SWIFT-BEAR-73')
+    it('should trim whitespace', () => {
+      // Act
+      const result = normalizeAccessCode('  SWIFT-BEAR-73  ')
+
+      // Assert
+      expect(result).toBe('SWIFT-BEAR-73')
     })
 
-    it('handles mixed case', () => {
-      expect(normalizeAccessCode('Swift-Bear-73')).toBe('SWIFT-BEAR-73')
+    it('should handle mixed case input', () => {
+      // Act
+      const result = normalizeAccessCode('Swift-Bear-73')
+
+      // Assert
+      expect(result).toBe('SWIFT-BEAR-73')
     })
   })
 
   describe('isValidAccessCodeFormat', () => {
-    it('returns true for valid format', () => {
+    it('should return true for valid format', () => {
+      // Act & Assert
       expect(isValidAccessCodeFormat('SWIFT-BEAR-73')).toBe(true)
       expect(isValidAccessCodeFormat('CALM-WOLF-00')).toBe(true)
       expect(isValidAccessCodeFormat('BRIGHT-OCEAN-99')).toBe(true)
     })
 
-    it('returns true for lowercase input (auto-normalized)', () => {
-      expect(isValidAccessCodeFormat('swift-bear-73')).toBe(true)
+    it('should return true for lowercase input (auto-normalized)', () => {
+      // Act
+      const result = isValidAccessCodeFormat('swift-bear-73')
+
+      // Assert
+      expect(result).toBe(true)
     })
 
-    it('returns false for invalid formats', () => {
-      expect(isValidAccessCodeFormat('SWIFT-BEAR')).toBe(false) // Missing number
-      expect(isValidAccessCodeFormat('SWIFTBEAR73')).toBe(false) // Missing dashes
-      expect(isValidAccessCodeFormat('SWIFT-BEAR-7')).toBe(false) // Single digit
+    it('should return false when number suffix is missing', () => {
+      // Act
+      const result = isValidAccessCodeFormat('SWIFT-BEAR')
+
+      // Assert
+      expect(result).toBe(false)
+    })
+
+    it('should return false when dashes are missing', () => {
+      // Act
+      const result = isValidAccessCodeFormat('SWIFTBEAR73')
+
+      // Assert
+      expect(result).toBe(false)
+    })
+
+    it('should return false when number has wrong digit count', () => {
+      // Act & Assert
+      expect(isValidAccessCodeFormat('SWIFT-BEAR-7')).toBe(false)   // Single digit
       expect(isValidAccessCodeFormat('SWIFT-BEAR-123')).toBe(false) // Three digits
-      expect(isValidAccessCodeFormat('')).toBe(false) // Empty
-      expect(isValidAccessCodeFormat('123-456-78')).toBe(false) // Numbers as words
+    })
+
+    it('should return false for empty string', () => {
+      // Act
+      const result = isValidAccessCodeFormat('')
+
+      // Assert
+      expect(result).toBe(false)
+    })
+
+    it('should return false when words are numbers', () => {
+      // Act
+      const result = isValidAccessCodeFormat('123-456-78')
+
+      // Assert
+      expect(result).toBe(false)
     })
   })
 })

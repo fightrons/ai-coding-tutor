@@ -11,62 +11,78 @@ describe('useDebounce', () => {
     vi.useRealTimers()
   })
 
-  it('returns initial value immediately', () => {
+  it('should return initial value immediately', () => {
+    // Act
     const { result } = renderHook(() => useDebounce('initial', 500))
+
+    // Assert
     expect(result.current).toBe('initial')
   })
 
-  it('debounces value changes', () => {
+  it('should debounce value changes until delay passes', () => {
+    // Arrange
     const { result, rerender } = renderHook(
       ({ value }) => useDebounce(value, 500),
       { initialProps: { value: 'first' } }
     )
-
     expect(result.current).toBe('first')
 
-    // Update value
+    // Act - Update value
     rerender({ value: 'second' })
-    expect(result.current).toBe('first') // Still old value
 
-    // Fast forward 499ms
+    // Assert - Still old value before delay
+    expect(result.current).toBe('first')
+
+    // Act - Fast forward 499ms
     act(() => {
       vi.advanceTimersByTime(499)
     })
-    expect(result.current).toBe('first') // Still old value
 
-    // Fast forward 1 more ms
+    // Assert - Still old value
+    expect(result.current).toBe('first')
+
+    // Act - Fast forward 1 more ms
     act(() => {
       vi.advanceTimersByTime(1)
     })
-    expect(result.current).toBe('second') // Now updated
+
+    // Assert - Now updated
+    expect(result.current).toBe('second')
   })
 
-  it('uses default delay of 500ms', () => {
+  it('should use default delay of 500ms', () => {
+    // Arrange
     const { result, rerender } = renderHook(
       ({ value }) => useDebounce(value),
       { initialProps: { value: 'initial' } }
     )
 
+    // Act
     rerender({ value: 'updated' })
-
     act(() => {
       vi.advanceTimersByTime(499)
     })
+
+    // Assert - Not yet updated
     expect(result.current).toBe('initial')
 
+    // Act
     act(() => {
       vi.advanceTimersByTime(1)
     })
+
+    // Assert - Now updated
     expect(result.current).toBe('updated')
   })
 
-  it('resets timer on rapid value changes', () => {
+  it('should reset timer on rapid value changes', () => {
+    // Arrange
     const { result, rerender } = renderHook(
       ({ value }) => useDebounce(value, 300),
       { initialProps: { value: 'a' } }
     )
 
-    // Rapid updates
+    // Act - Rapid updates
     rerender({ value: 'b' })
     act(() => {
       vi.advanceTimersByTime(100)
@@ -79,17 +95,20 @@ describe('useDebounce', () => {
 
     rerender({ value: 'd' })
 
-    // Value should still be 'a' because timer keeps resetting
+    // Assert - Value should still be 'a' because timer keeps resetting
     expect(result.current).toBe('a')
 
-    // Wait full delay after last update
+    // Act - Wait full delay after last update
     act(() => {
       vi.advanceTimersByTime(300)
     })
+
+    // Assert - Now shows final value
     expect(result.current).toBe('d')
   })
 
-  it('works with objects', () => {
+  it('should work with objects', () => {
+    // Arrange
     const obj1 = { name: 'first' }
     const obj2 = { name: 'second' }
 
@@ -98,13 +117,16 @@ describe('useDebounce', () => {
       { initialProps: { value: obj1 } }
     )
 
+    // Assert - Initial value
     expect(result.current).toBe(obj1)
 
+    // Act
     rerender({ value: obj2 })
-
     act(() => {
       vi.advanceTimersByTime(500)
     })
+
+    // Assert
     expect(result.current).toBe(obj2)
   })
 })
