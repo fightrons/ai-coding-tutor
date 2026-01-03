@@ -12,7 +12,7 @@ Get the AI Coding Tutor running locally in under 15 minutes.
 ## Step 1: Clone and Install
 
 ```bash
-git clone https://github.com/veliyat/ai-coding-tutor.git
+git clone https://github.com/fightrons/ai-coding-tutor.git
 cd ai-coding-tutor
 npm install
 ```

@@ -38,7 +38,7 @@ An adaptive AI programming tutor that teaches JavaScript step-by-step with perso
 
 1. **Clone and install**
    ```bash
-   git clone https://github.com/veliyat/ai-coding-tutor.git
+   git clone https://github.com/fightrons/ai-coding-tutor.git
    cd ai-coding-tutor
    npm install
    ```
