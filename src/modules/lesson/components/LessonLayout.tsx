@@ -177,16 +177,16 @@ export function LessonLayout({ slug }: LessonLayoutProps) {
         {isCompleted && (
           <div className="mt-8 pt-6 border-t space-y-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-green-600">
-                <CheckCircle2 className="h-5 w-5" />
-                <span className="font-medium">Lesson Complete</span>
-              </div>
               <Button asChild variant="ghost" size="sm">
                 <Link to="/learn">
                   <ArrowLeft className="h-4 w-4 mr-1" />
                   Back to Dashboard
                 </Link>
               </Button>
+              <div className="flex items-center gap-2 text-green-600">
+                <CheckCircle2 className="h-5 w-5" />
+                <span className="font-medium">Lesson Complete</span>
+              </div>
             </div>
 
             {/* Registration prompt for code-based users */}
