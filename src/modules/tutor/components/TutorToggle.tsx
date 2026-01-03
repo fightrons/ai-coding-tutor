@@ -7,12 +7,15 @@ interface TutorToggleProps {
   isOpen: boolean
   onClick: () => void
   hasNotification?: boolean
+  /** Show only icon without text (for mobile) */
+  iconOnly?: boolean
 }
 
 export function TutorToggle({
   isOpen,
   onClick,
   hasNotification,
+  iconOnly,
 }: TutorToggleProps) {
   return (
     <Button
@@ -21,8 +24,8 @@ export function TutorToggle({
       onClick={onClick}
       className={cn('relative', isOpen && 'bg-secondary')}
     >
-      <MessageCircle className="h-4 w-4 mr-2" />
-      Ask {TUTOR_CONFIG.name}
+      <MessageCircle className={cn('h-4 w-4', !iconOnly && 'mr-2')} />
+      {!iconOnly && `Ask ${TUTOR_CONFIG.name}`}
       {hasNotification && (
         <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-primary rounded-full animate-pulse" />
       )}

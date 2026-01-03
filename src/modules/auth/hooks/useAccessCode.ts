@@ -90,45 +90,61 @@ export function useAccessCode() {
   }> => {
     setState(prev => ({ ...prev, loading: true, error: null }))
 
-    // Try up to 5 times for unique code (collision is rare but possible)
-    for (let attempt = 0; attempt < 5; attempt++) {
-      const code = generateAccessCode()
-      const displayName = generateDisplayName()
-      const avatar = pickRandomAvatar()
+    try {
+      // Try up to 5 times for unique code (collision is rare but possible)
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const code = generateAccessCode()
+        const displayName = generateDisplayName()
+        const avatar = pickRandomAvatar()
 
-      logger.log('Creating anonymous profile with code:', code)
+        logger.log('Creating anonymous profile with code:', code)
 
-      const { data, error } = await supabase
-        .from('student_profiles')
-        .insert({
-          id: crypto.randomUUID(),
-          access_code: code,
-          display_name: displayName,
-          avatar_emoji: avatar,
-          // auth_user_id is null for anonymous profiles
-        })
-        .select()
-        .single()
+        // Generate UUID (with fallback for non-secure contexts)
+        const uuid = typeof crypto.randomUUID === 'function'
+          ? crypto.randomUUID()
+          : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+              const r = Math.random() * 16 | 0
+              const v = c === 'x' ? r : (r & 0x3 | 0x8)
+              return v.toString(16)
+            })
 
-      if (error) {
-        // Unique constraint violation - retry with new code
-        if (error.code === '23505') {
-          logger.log('Code collision, retrying...')
-          continue
+        const { data, error } = await supabase
+          .from('student_profiles')
+          .insert({
+            id: uuid,
+            access_code: code,
+            display_name: displayName,
+            avatar_emoji: avatar,
+            // auth_user_id is null for anonymous profiles
+          })
+          .select()
+          .single()
+
+        if (error) {
+          // Unique constraint violation - retry with new code
+          if (error.code === '23505') {
+            logger.log('Code collision, retrying...')
+            continue
+          }
+          logger.error('Profile creation failed:', error)
+          setState(prev => ({ ...prev, loading: false, error: error.message }))
+          return { accessCode: null, error: error.message }
         }
-        logger.error('Profile creation failed:', error)
-        setState(prev => ({ ...prev, loading: false, error: error.message }))
-        return { accessCode: null, error: error.message }
+
+        localStorage.setItem(ACCESS_CODE_KEY, code)
+        setState({ accessCode: code, profile: data, loading: false, error: null })
+        return { accessCode: code, error: null }
       }
 
-      localStorage.setItem(ACCESS_CODE_KEY, code)
-      setState({ accessCode: code, profile: data, loading: false, error: null })
-      return { accessCode: code, error: null }
+      const errorMsg = 'Failed to generate unique access code after 5 attempts'
+      setState(prev => ({ ...prev, loading: false, error: errorMsg }))
+      return { accessCode: null, error: errorMsg }
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Failed to create profile'
+      logger.error('Profile creation exception:', err)
+      setState(prev => ({ ...prev, loading: false, error: errorMsg }))
+      return { accessCode: null, error: errorMsg }
     }
-
-    const errorMsg = 'Failed to generate unique access code after 5 attempts'
-    setState(prev => ({ ...prev, loading: false, error: errorMsg }))
-    return { accessCode: null, error: errorMsg }
   }, [])
 
   const validateCode = useCallback(async (code: string): Promise<boolean> => {

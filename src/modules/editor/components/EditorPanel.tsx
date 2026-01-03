@@ -13,6 +13,12 @@ interface EditorPanelProps {
   onCodeChange?: (code: string) => void
   onResult?: (result: ExecutionResult) => void
   toolbarExtra?: ReactNode
+  /** Controlled code value - when provided, parent manages state */
+  code?: string
+  /** Minimum height for editor section (useful for mobile) */
+  minEditorHeight?: string
+  /** Prevent editor from auto-focusing on mount (prevents keyboard on mobile) */
+  preventAutoFocus?: boolean
 }
 
 export function EditorPanel({
@@ -22,14 +28,22 @@ export function EditorPanel({
   onCodeChange,
   onResult,
   toolbarExtra,
+  code: controlledCode,
+  minEditorHeight,
+  preventAutoFocus,
 }: EditorPanelProps) {
-  const [code, setCode] = useState(starterCode)
-  const { result, running, run, reset } = useCodeRunner()
+  // Support both controlled and uncontrolled modes
+  const [internalCode, setInternalCode] = useState(starterCode)
+  const isControlled = controlledCode !== undefined
+  const code = isControlled ? controlledCode : internalCode
 
-  // Notify parent when code changes
-  useEffect(() => {
-    onCodeChange?.(code)
-  }, [code, onCodeChange])
+  const setCode = (newCode: string) => {
+    if (!isControlled) {
+      setInternalCode(newCode)
+    }
+    onCodeChange?.(newCode)
+  }
+  const { result, running, run, reset } = useCodeRunner()
 
   // Notify parent when result changes
   useEffect(() => {
@@ -75,8 +89,8 @@ export function EditorPanel({
       </div>
 
       {/* Editor */}
-      <div className="flex-1 min-h-0">
-        <CodeEditor value={code} onChange={setCode} />
+      <div className="flex-1 min-h-0" style={minEditorHeight ? { minHeight: minEditorHeight } : undefined}>
+        <CodeEditor value={code} onChange={setCode} preventAutoFocus={preventAutoFocus} />
       </div>
 
       {/* Output */}

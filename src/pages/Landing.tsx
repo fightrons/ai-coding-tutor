@@ -39,15 +39,24 @@ export function Landing() {
   async function handleStartLearning() {
     setIsCreating(true)
     setMessage(null)
-    const { error } = await createProfile()
-    setIsCreating(false)
 
-    if (error) {
-      setMessage({ type: 'error', text: error })
-      return
+    try {
+      const { error } = await createProfile()
+      setIsCreating(false)
+
+      if (error) {
+        setMessage({ type: 'error', text: error })
+        return
+      }
+
+      navigate('/learn')
+    } catch (err) {
+      setIsCreating(false)
+      setMessage({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'Something went wrong. Please try again.',
+      })
     }
-
-    navigate('/learn')
   }
 
   async function handleCodeSubmit(e: React.FormEvent) {

@@ -1,14 +1,24 @@
 import { X } from 'lucide-react'
 import { Button } from '@/shared/components/ui/button'
+import { cn } from '@/shared/lib/utils'
 
 interface ProactivePromptProps {
   onAccept: () => void
   onDismiss: () => void
+  /** Position variant: bottom-right (desktop) or bottom-center (mobile) */
+  position?: 'bottom-right' | 'bottom-center'
 }
 
-export function ProactivePrompt({ onAccept, onDismiss }: ProactivePromptProps) {
+export function ProactivePrompt({ onAccept, onDismiss, position = 'bottom-right' }: ProactivePromptProps) {
   return (
-    <div className="absolute bottom-4 right-4 max-w-[280px] p-4 bg-background border rounded-lg shadow-lg animate-in slide-in-from-right-5 duration-300">
+    <div
+      className={cn(
+        'absolute max-w-[280px] p-4 bg-background border rounded-lg shadow-lg animate-in duration-300',
+        position === 'bottom-center'
+          ? 'bottom-20 left-1/2 -translate-x-1/2 slide-in-from-bottom-5'
+          : 'bottom-4 right-4 slide-in-from-right-5'
+      )}
+    >
       <button
         onClick={onDismiss}
         className="absolute top-2 right-2 text-muted-foreground hover:text-foreground"

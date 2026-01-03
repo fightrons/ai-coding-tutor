@@ -1,5 +1,6 @@
 // Components
 export { TutorPanel } from './components/TutorPanel'
+export { TutorBottomSheet } from './components/TutorBottomSheet'
 export { TutorToggle } from './components/TutorToggle'
 export { ProactivePrompt } from './components/ProactivePrompt'
 export { MessageList } from './components/MessageList'

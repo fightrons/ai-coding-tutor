@@ -2,6 +2,7 @@
 export { LessonContent } from './components/LessonContent'
 export { ExercisePanel } from './components/ExercisePanel'
 export { LessonLayout } from './components/LessonLayout'
+export { LessonTabs, type LessonTabType } from './components/LessonTabs'
 export { ModuleCard } from './components/ModuleCard'
 
 // Hooks
