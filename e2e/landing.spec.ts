@@ -4,41 +4,52 @@ test.describe('Landing Page', () => {
   test('should display the landing page', async ({ page }) => {
     await page.goto('/')
 
-    // Check that the page loads
-    await expect(page).toHaveTitle(/AI Programming Tutor|Coding Tutor/i)
+    // Wait for splash screen to complete and main content to appear
+    await expect(page.getByRole('heading', { name: /learn programming/i })).toBeVisible({
+      timeout: 5000,
+    })
   })
 
   test('should have login and signup links', async ({ page }) => {
     await page.goto('/')
 
-    // Look for authentication-related links or buttons
-    const loginLink = page.getByRole('link', { name: /log\s*in|sign\s*in/i })
-    const signupLink = page.getByRole('link', { name: /sign\s*up|get\s*started|register/i })
+    // Wait for splash screen to complete
+    await expect(page.getByRole('heading', { name: /learn programming/i })).toBeVisible({
+      timeout: 5000,
+    })
 
-    // At least one of these should be visible
-    const hasLoginOrSignup = await loginLink.isVisible() || await signupLink.isVisible()
-    expect(hasLoginOrSignup).toBe(true)
+    // Look for authentication-related links (actual text: "Sign In" and "Create Account")
+    const loginLink = page.getByRole('link', { name: /sign in/i })
+    const signupLink = page.getByRole('link', { name: /create account/i })
+
+    // Both should be visible
+    await expect(loginLink).toBeVisible()
+    await expect(signupLink).toBeVisible()
   })
 
   test('should navigate to login page', async ({ page }) => {
     await page.goto('/')
 
+    // Wait for splash screen to complete
+    await expect(page.getByRole('heading', { name: /learn programming/i })).toBeVisible({
+      timeout: 5000,
+    })
+
     // Click login link
-    const loginLink = page.getByRole('link', { name: /log\s*in|sign\s*in/i })
-    if (await loginLink.isVisible()) {
-      await loginLink.click()
-      await expect(page).toHaveURL(/\/login/)
-    }
+    await page.getByRole('link', { name: /sign in/i }).click()
+    await expect(page).toHaveURL(/\/login/)
   })
 
   test('should navigate to signup page', async ({ page }) => {
     await page.goto('/')
 
+    // Wait for splash screen to complete
+    await expect(page.getByRole('heading', { name: /learn programming/i })).toBeVisible({
+      timeout: 5000,
+    })
+
     // Click signup link
-    const signupLink = page.getByRole('link', { name: /sign\s*up|get\s*started|register/i })
-    if (await signupLink.isVisible()) {
-      await signupLink.click()
-      await expect(page).toHaveURL(/\/signup/)
-    }
+    await page.getByRole('link', { name: /create account/i }).click()
+    await expect(page).toHaveURL(/\/signup/)
   })
 })
