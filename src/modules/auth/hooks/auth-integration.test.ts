@@ -31,13 +31,11 @@ import { useIdentity } from './useIdentity'
 import { useAccessCode } from './useAccessCode'
 
 describe('Auth Integration', () => {
-  let authStateCallback: ((event: string, session: unknown) => void) | null = null
   let localStorageMock: Record<string, string> = {}
 
   beforeEach(() => {
     vi.clearAllMocks()
     localStorageMock = {}
-    authStateCallback = null
 
     // Mock localStorage
     vi.spyOn(Storage.prototype, 'getItem').mockImplementation(
@@ -60,15 +58,12 @@ describe('Auth Integration', () => {
       error: null,
     })
 
-    // Capture auth state change callback
-    mockSupabaseAuth.onAuthStateChange.mockImplementation((callback) => {
-      authStateCallback = callback
-      return {
-        data: {
-          subscription: { unsubscribe: vi.fn() },
-        },
-      }
-    })
+    // Mock auth state change subscription
+    mockSupabaseAuth.onAuthStateChange.mockImplementation(() => ({
+      data: {
+        subscription: { unsubscribe: vi.fn() },
+      },
+    }))
   })
 
   afterEach(() => {
