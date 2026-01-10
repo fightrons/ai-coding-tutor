@@ -42,6 +42,7 @@ src/modules/[feature]/
 2. **Pages are Thin** — Route components handle routing/composition only (<100 lines)
 3. **Hooks-First State** — `useState`/`useCallback` by default, Context when truly needed
 4. **Guard Composition** — Protect routes with composable wrapper components
+5. **Event-Driven Cross-Module Communication** — Use pub/sub event bus for decoupled data flow
 
 ### Current Modules
 
@@ -67,6 +68,33 @@ src/modules/[feature]/
                     │  (AI tutor)  │
                     └──────────────┘
 ```
+
+### Event-Driven Architecture
+
+Cross-module communication uses a type-safe pub/sub event bus (`src/shared/hooks/useEventBus.tsx`):
+
+```
+┌─────────────┐   publish()   ┌─────────────┐   subscribe()   ┌─────────────┐
+│   Tutor     │──────────────▶│  Event Bus  │◀────────────────│   Lesson    │
+│  Module     │               │  (Context)  │                 │   Module    │
+└─────────────┘               └─────────────┘                 └─────────────┘
+                                    │
+                                    ▼
+                              ┌─────────────┐
+                              │  Supabase   │
+                              │ (persist)   │
+                              └─────────────┘
+```
+
+**When to use Event Bus:**
+- Cross-module data flow (e.g., tutor → lesson persistence)
+- Fire-and-forget operations (never block UI)
+- Multiple subscribers need same data (e.g., persistence + gamification)
+
+**Current Events:**
+| Event | Publisher | Subscriber | Purpose |
+|-------|-----------|------------|---------|
+| `exercise:attempt_recorded` | `useTutorChat` | `useAttemptPersistence` | Persist attempts |
 
 ## Authentication Strategy
 
@@ -121,7 +149,9 @@ See `docs/TESTING.md` for detailed testing guide.
 
 ## Related Documentation
 
-- `CLAUDE.md` — AI assistant context and coding conventions
+- `CLAUDE.md` — AI assistant context, coding conventions, event bus reference
 - `docs/TESTING.md` — Testing strategy and TDD approach
 - `docs/ONBOARDING.md` — Getting started guide
 - `docs/FRICTIONLESS_ONBOARDING.md` — Access code system design
+- `docs/PERSONALIZED_LEARNING.md` — Gamification & data collection implementation
+- `docs/FUTURE_ENHANCEMENTS.md` — Roadmap and planned features

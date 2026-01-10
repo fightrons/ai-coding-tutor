@@ -68,13 +68,18 @@ A planning and execution guide for upcoming features and improvements.
 - "Choose your path" decision points
 
 ### Gamification
-**Current**: None
+**Current**: Phase 1 (Data Collection) complete
 **Goal**: Engagement and motivation features
+**Spec**: See `docs/PERSONALIZED_LEARNING.md` for full implementation plan
 
-- Daily streak counter
-- Achievement badges (first lesson, streak milestones, etc.)
-- XP/points system tied to completion and accuracy
-- Optional leaderboard (anonymous or private)
+**Progress**:
+- [x] Event bus architecture for decoupled data flow
+- [x] Exercise attempt persistence to database
+- [x] Database triggers for progress aggregation
+- [ ] XP/points system (Phase 2)
+- [ ] Daily streak counter (Phase 2)
+- [ ] Achievement badges (Phase 2)
+- [ ] Dashboard redesign (Phase 3)
 
 ### Social Features
 **Current**: None
@@ -90,8 +95,9 @@ A planning and execution guide for upcoming features and improvements.
 ## Technical Improvements
 
 ### Testing Infrastructure
-**Current**: No tests
-**Priority**: High
+**Current**: ✅ Implemented (400+ tests)
+**Priority**: High (COMPLETE)
+**Docs**: See `docs/TESTING.md` for full testing guide
 
 #### Recommended Stack
 
@@ -461,8 +467,9 @@ jobs:
 ## Analytics & Monitoring
 
 ### Activity Definition
-**Current**: No activity tracking
+**Current**: Exercise attempts tracked (Phase 1 complete)
 **Goal**: Define and track user activity for engagement metrics
+**Note**: `exercise_attempts` table now populated via event bus; `student_progress` aggregates auto-updated
 
 #### What Counts as Activity?
 Need to decide which actions constitute "activity" for tracking purposes:
@@ -559,5 +566,6 @@ When picking up an enhancement:
 
 ---
 
-*Last updated: December 2024*
+*Last updated: January 2026*
 *Testing section expanded: December 2024*
+*Gamification Phase 1 complete: January 2026*

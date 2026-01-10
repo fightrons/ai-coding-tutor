@@ -10,6 +10,7 @@ import { useIdentity } from '@/modules/auth'
 import { TutorPanel, TutorToggle, ProactivePrompt, TutorBottomSheet, useTutorChat } from '@/modules/tutor'
 import { useLesson } from '../hooks/useLesson'
 import { useProgress } from '../hooks/useProgress'
+import { useAttemptPersistenceListener } from '../hooks/useAttemptPersistence'
 import { LessonContent } from './LessonContent'
 import { ExercisePanel } from './ExercisePanel'
 import { LessonTabs, type LessonTabType } from './LessonTabs'
@@ -23,6 +24,9 @@ export function LessonLayout({ slug }: LessonLayoutProps) {
   const { lesson, module, loading, error } = useLesson(slug)
   const { startLesson, completeLesson, getStatus } = useProgress()
   const { isMobile, isTablet, isDesktop } = useBreakpoint()
+
+  // Activate event listener for persisting exercise attempts
+  useAttemptPersistenceListener()
 
   // Track if component has mounted (to avoid rendering editor before breakpoint is stable)
   const [mounted, setMounted] = useState(false)

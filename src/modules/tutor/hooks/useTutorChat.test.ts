@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, act, waitFor } from '@testing-library/react'
+import { createElement, type ReactNode } from 'react'
 import { useTutorChat } from './useTutorChat'
+import { EventBusProvider } from '@/shared/hooks'
 import type { Lesson } from '@/modules/lesson'
 import type { ExecutionResult } from '@/modules/editor'
 
@@ -40,12 +42,30 @@ vi.mock('./useTutorContext', () => ({
   })),
 }))
 
+// Mock useIdentity from auth module
+vi.mock('@/modules/auth', () => ({
+  useIdentity: vi.fn(() => ({
+    profileId: 'profile-123',
+    type: 'registered',
+    displayName: 'Test User',
+    avatar: '🦊',
+    accessCode: null,
+    isAuthenticated: true,
+    loading: false,
+  })),
+}))
+
 const mockGenerateResponse = vi.fn()
 vi.mock('../lib/tutor-service', () => ({
   getTutorService: vi.fn(() => ({
     generateResponse: mockGenerateResponse,
   })),
 }))
+
+// Wrapper component that provides EventBusProvider
+function Wrapper({ children }: { children: ReactNode }) {
+  return createElement(EventBusProvider, null, children)
+}
 
 import { useTutorMessages } from './useTutorMessages'
 import { useExerciseAttempts } from './useExerciseAttempts'
@@ -114,24 +134,28 @@ describe('useTutorChat', () => {
 
   describe('initial state', () => {
     it('starts with isOpen false', () => {
-      const { result } = renderHook(() =>
-        useTutorChat({
-          lesson: createLesson(),
-          currentCode: '',
-          lastResult: null,
-        })
+      const { result } = renderHook(
+        () =>
+          useTutorChat({
+            lesson: createLesson(),
+            currentCode: '',
+            lastResult: null,
+          }),
+        { wrapper: Wrapper }
       )
 
       expect(result.current.isOpen).toBe(false)
     })
 
     it('starts with isLoading false', () => {
-      const { result } = renderHook(() =>
-        useTutorChat({
-          lesson: createLesson(),
-          currentCode: '',
-          lastResult: null,
-        })
+      const { result } = renderHook(
+        () =>
+          useTutorChat({
+            lesson: createLesson(),
+            currentCode: '',
+            lastResult: null,
+          }),
+        { wrapper: Wrapper }
       )
 
       expect(result.current.isLoading).toBe(false)
@@ -140,12 +164,14 @@ describe('useTutorChat', () => {
 
   describe('toggle, open, close', () => {
     it('toggle toggles isOpen state', () => {
-      const { result } = renderHook(() =>
-        useTutorChat({
-          lesson: createLesson(),
-          currentCode: '',
-          lastResult: null,
-        })
+      const { result } = renderHook(
+        () =>
+          useTutorChat({
+            lesson: createLesson(),
+            currentCode: '',
+            lastResult: null,
+          }),
+        { wrapper: Wrapper }
       )
 
       expect(result.current.isOpen).toBe(false)
@@ -164,12 +190,14 @@ describe('useTutorChat', () => {
     })
 
     it('open sets isOpen to true', () => {
-      const { result } = renderHook(() =>
-        useTutorChat({
-          lesson: createLesson(),
-          currentCode: '',
-          lastResult: null,
-        })
+      const { result } = renderHook(
+        () =>
+          useTutorChat({
+            lesson: createLesson(),
+            currentCode: '',
+            lastResult: null,
+          }),
+        { wrapper: Wrapper }
       )
 
       act(() => {
@@ -180,12 +208,14 @@ describe('useTutorChat', () => {
     })
 
     it('close sets isOpen to false', () => {
-      const { result } = renderHook(() =>
-        useTutorChat({
-          lesson: createLesson(),
-          currentCode: '',
-          lastResult: null,
-        })
+      const { result } = renderHook(
+        () =>
+          useTutorChat({
+            lesson: createLesson(),
+            currentCode: '',
+            lastResult: null,
+          }),
+        { wrapper: Wrapper }
       )
 
       act(() => {
@@ -212,7 +242,7 @@ describe('useTutorChat', () => {
             currentCode: '',
             lastResult: null,
           }),
-        { initialProps: { lesson: lesson1 } }
+        { initialProps: { lesson: lesson1 }, wrapper: Wrapper }
       )
 
       expect(mockResetAttempts).toHaveBeenCalledTimes(1)
@@ -232,7 +262,7 @@ describe('useTutorChat', () => {
             currentCode,
             lastResult,
           }),
-        { initialProps: { lastResult: null as ExecutionResult | null, currentCode: '' } }
+        { initialProps: { lastResult: null as ExecutionResult | null, currentCode: '' }, wrapper: Wrapper }
       )
 
       const result = createResult(true)
@@ -242,12 +272,14 @@ describe('useTutorChat', () => {
     })
 
     it('does not record attempt when lastResult is null', () => {
-      renderHook(() =>
-        useTutorChat({
-          lesson: createLesson(),
-          currentCode: 'console.log("hello")',
-          lastResult: null,
-        })
+      renderHook(
+        () =>
+          useTutorChat({
+            lesson: createLesson(),
+            currentCode: 'console.log("hello")',
+            lastResult: null,
+          }),
+        { wrapper: Wrapper }
       )
 
       expect(mockRecordAttempt).not.toHaveBeenCalled()
@@ -258,12 +290,14 @@ describe('useTutorChat', () => {
     it('does nothing without context', async () => {
       mockUseTutorContext.mockReturnValue(null)
 
-      const { result } = renderHook(() =>
-        useTutorChat({
-          lesson: createLesson(),
-          currentCode: '',
-          lastResult: null,
-        })
+      const { result } = renderHook(
+        () =>
+          useTutorChat({
+            lesson: createLesson(),
+            currentCode: '',
+            lastResult: null,
+          }),
+        { wrapper: Wrapper }
       )
 
       await act(async () => {
@@ -274,12 +308,14 @@ describe('useTutorChat', () => {
     })
 
     it('saves student message', async () => {
-      const { result } = renderHook(() =>
-        useTutorChat({
-          lesson: createLesson(),
-          currentCode: '',
-          lastResult: null,
-        })
+      const { result } = renderHook(
+        () =>
+          useTutorChat({
+            lesson: createLesson(),
+            currentCode: '',
+            lastResult: null,
+          }),
+        { wrapper: Wrapper }
       )
 
       await act(async () => {
@@ -290,12 +326,14 @@ describe('useTutorChat', () => {
     })
 
     it('detects "hint" keyword and increments hint level', async () => {
-      const { result } = renderHook(() =>
-        useTutorChat({
-          lesson: createLesson(),
-          currentCode: '',
-          lastResult: null,
-        })
+      const { result } = renderHook(
+        () =>
+          useTutorChat({
+            lesson: createLesson(),
+            currentCode: '',
+            lastResult: null,
+          }),
+        { wrapper: Wrapper }
       )
 
       await act(async () => {
@@ -306,12 +344,14 @@ describe('useTutorChat', () => {
     })
 
     it('detects "help" keyword and increments hint level', async () => {
-      const { result } = renderHook(() =>
-        useTutorChat({
-          lesson: createLesson(),
-          currentCode: '',
-          lastResult: null,
-        })
+      const { result } = renderHook(
+        () =>
+          useTutorChat({
+            lesson: createLesson(),
+            currentCode: '',
+            lastResult: null,
+          }),
+        { wrapper: Wrapper }
       )
 
       await act(async () => {
@@ -322,12 +362,14 @@ describe('useTutorChat', () => {
     })
 
     it('detects "stuck" keyword and increments hint level', async () => {
-      const { result } = renderHook(() =>
-        useTutorChat({
-          lesson: createLesson(),
-          currentCode: '',
-          lastResult: null,
-        })
+      const { result } = renderHook(
+        () =>
+          useTutorChat({
+            lesson: createLesson(),
+            currentCode: '',
+            lastResult: null,
+          }),
+        { wrapper: Wrapper }
       )
 
       await act(async () => {
@@ -338,12 +380,14 @@ describe('useTutorChat', () => {
     })
 
     it('does not increment hint level for regular messages', async () => {
-      const { result } = renderHook(() =>
-        useTutorChat({
-          lesson: createLesson(),
-          currentCode: '',
-          lastResult: null,
-        })
+      const { result } = renderHook(
+        () =>
+          useTutorChat({
+            lesson: createLesson(),
+            currentCode: '',
+            lastResult: null,
+          }),
+        { wrapper: Wrapper }
       )
 
       await act(async () => {
@@ -354,12 +398,14 @@ describe('useTutorChat', () => {
     })
 
     it('calls tutor service and saves response', async () => {
-      const { result } = renderHook(() =>
-        useTutorChat({
-          lesson: createLesson(),
-          currentCode: '',
-          lastResult: null,
-        })
+      const { result } = renderHook(
+        () =>
+          useTutorChat({
+            lesson: createLesson(),
+            currentCode: '',
+            lastResult: null,
+          }),
+        { wrapper: Wrapper }
       )
 
       await act(async () => {
@@ -380,12 +426,14 @@ describe('useTutorChat', () => {
           })
       )
 
-      const { result } = renderHook(() =>
-        useTutorChat({
-          lesson: createLesson(),
-          currentCode: '',
-          lastResult: null,
-        })
+      const { result } = renderHook(
+        () =>
+          useTutorChat({
+            lesson: createLesson(),
+            currentCode: '',
+            lastResult: null,
+          }),
+        { wrapper: Wrapper }
       )
 
       act(() => {
@@ -408,12 +456,14 @@ describe('useTutorChat', () => {
 
   describe('openWithMessage', () => {
     it('opens panel and sends message', async () => {
-      const { result } = renderHook(() =>
-        useTutorChat({
-          lesson: createLesson(),
-          currentCode: '',
-          lastResult: null,
-        })
+      const { result } = renderHook(
+        () =>
+          useTutorChat({
+            lesson: createLesson(),
+            currentCode: '',
+            lastResult: null,
+          }),
+        { wrapper: Wrapper }
       )
 
       await act(async () => {
@@ -437,12 +487,14 @@ describe('useTutorChat', () => {
         resetAttempts: mockResetAttempts,
       })
 
-      const { result } = renderHook(() =>
-        useTutorChat({
-          lesson: createLesson(),
-          currentCode: '',
-          lastResult: null,
-        })
+      const { result } = renderHook(
+        () =>
+          useTutorChat({
+            lesson: createLesson(),
+            currentCode: '',
+            lastResult: null,
+          }),
+        { wrapper: Wrapper }
       )
 
       expect(result.current.shouldShowPrompt).toBe(true)
@@ -459,12 +511,14 @@ describe('useTutorChat', () => {
         resetAttempts: mockResetAttempts,
       })
 
-      const { result } = renderHook(() =>
-        useTutorChat({
-          lesson: createLesson(),
-          currentCode: '',
-          lastResult: null,
-        })
+      const { result } = renderHook(
+        () =>
+          useTutorChat({
+            lesson: createLesson(),
+            currentCode: '',
+            lastResult: null,
+          }),
+        { wrapper: Wrapper }
       )
 
       act(() => {
@@ -477,12 +531,14 @@ describe('useTutorChat', () => {
 
   describe('dismissPrompt', () => {
     it('calls underlying dismissPrompt', () => {
-      const { result } = renderHook(() =>
-        useTutorChat({
-          lesson: createLesson(),
-          currentCode: '',
-          lastResult: null,
-        })
+      const { result } = renderHook(
+        () =>
+          useTutorChat({
+            lesson: createLesson(),
+            currentCode: '',
+            lastResult: null,
+          }),
+        { wrapper: Wrapper }
       )
 
       act(() => {
@@ -495,16 +551,18 @@ describe('useTutorChat', () => {
 
   describe('acceptPrompt', () => {
     it('dismisses prompt and opens with help message', async () => {
-      const { result } = renderHook(() =>
-        useTutorChat({
-          lesson: createLesson(),
-          currentCode: '',
-          lastResult: null,
-        })
+      const { result } = renderHook(
+        () =>
+          useTutorChat({
+            lesson: createLesson(),
+            currentCode: '',
+            lastResult: null,
+          }),
+        { wrapper: Wrapper }
       )
 
       await act(async () => {
-        await result.current.acceptPrompt()
+        result.current.acceptPrompt()
       })
 
       expect(mockDismissPrompt).toHaveBeenCalled()
@@ -526,12 +584,14 @@ describe('useTutorChat', () => {
         sendMessage: mockSendMessage,
       })
 
-      const { result } = renderHook(() =>
-        useTutorChat({
-          lesson: createLesson(),
-          currentCode: '',
-          lastResult: null,
-        })
+      const { result } = renderHook(
+        () =>
+          useTutorChat({
+            lesson: createLesson(),
+            currentCode: '',
+            lastResult: null,
+          }),
+        { wrapper: Wrapper }
       )
 
       expect(result.current.isLoading).toBe(true)
@@ -547,12 +607,14 @@ describe('useTutorChat', () => {
         sendMessage: mockSendMessage,
       })
 
-      const { result } = renderHook(() =>
-        useTutorChat({
-          lesson: createLesson(),
-          currentCode: '',
-          lastResult: null,
-        })
+      const { result } = renderHook(
+        () =>
+          useTutorChat({
+            lesson: createLesson(),
+            currentCode: '',
+            lastResult: null,
+          }),
+        { wrapper: Wrapper }
       )
 
       expect(result.current.error).toBe('Failed to load messages')

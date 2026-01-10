@@ -9,6 +9,7 @@ export { ModuleCard } from './components/ModuleCard'
 export { useModules } from './hooks/useModules'
 export { useLesson } from './hooks/useLesson'
 export { useProgress } from './hooks/useProgress'
+export { useAttemptPersistenceListener } from './hooks/useAttemptPersistence'
 
 // Types
 export type {

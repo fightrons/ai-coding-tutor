@@ -1,6 +1,8 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import type { ExecutionResult } from '@/modules/editor'
 import type { Lesson } from '@/modules/lesson'
+import { usePublish } from '@/shared/hooks'
+import { useIdentity } from '@/modules/auth'
 import { useTutorMessages } from './useTutorMessages'
 import { useExerciseAttempts } from './useExerciseAttempts'
 import { useTutorContext } from './useTutorContext'
@@ -18,6 +20,14 @@ export function useTutorChat(options: UseTutorChatOptions) {
 
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+
+  // Get identity for event publishing
+  const { profileId } = useIdentity()
+  const publish = usePublish()
+
+  // Track time spent on attempts
+  const attemptStartTimeRef = useRef<number>(Date.now())
+  const lastResultRef = useRef<ExecutionResult | null>(null)
 
   // Fetch and manage messages
   const {
@@ -48,17 +58,47 @@ export function useTutorChat(options: UseTutorChatOptions) {
     attemptCount,
   })
 
-  // Reset attempts when lesson changes
+  // Reset attempts and timer when lesson changes
   useEffect(() => {
     resetAttempts()
+    attemptStartTimeRef.current = Date.now()
+    lastResultRef.current = null
   }, [lessonId, resetAttempts])
 
-  // Record attempt when result changes
+  // Record attempt when result changes and publish event
   useEffect(() => {
-    if (lastResult && currentCode) {
+    if (lastResult && currentCode && lastResult !== lastResultRef.current) {
+      // Update ref to prevent duplicate events
+      lastResultRef.current = lastResult
+
+      // Record in local state (for UI)
       recordAttempt(currentCode, lastResult)
+
+      // Calculate time spent since last attempt or lesson start
+      const timeSpentSeconds = Math.round(
+        (Date.now() - attemptStartTimeRef.current) / 1000
+      )
+
+      // Reset timer for next attempt
+      attemptStartTimeRef.current = Date.now()
+
+      // Publish event for persistence (if we have a student profile)
+      if (profileId && lessonId) {
+        publish('exercise:attempt_recorded', {
+          studentId: profileId,
+          lessonId,
+          exerciseId: lessonId, // Using lessonId as exerciseId (1 exercise per lesson)
+          code: currentCode,
+          passed: lastResult.allPassed,
+          testResults: lastResult.testResults,
+          errorMessage: lastResult.error,
+          timeSpentSeconds,
+          hintLevel,
+          isFirstAttempt: attemptCount === 0,
+        })
+      }
     }
-  }, [lastResult, currentCode, recordAttempt])
+  }, [lastResult, currentCode, recordAttempt, publish, profileId, lessonId, hintLevel, attemptCount])
 
   const sendMessage = useCallback(
     async (userMessage: string) => {

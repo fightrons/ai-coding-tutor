@@ -42,12 +42,13 @@ src/
 │   │   ├── components/
 │   │   │   ├── LessonContent.tsx # Renders explanation + code sections
 │   │   │   ├── ExercisePanel.tsx # Exercise description + hints
-│   │   │   ├── LessonLayout.tsx  # Two-panel lesson view
+│   │   │   ├── LessonLayout.tsx  # Two-panel lesson view (activates persistence listener)
 │   │   │   └── ModuleCard.tsx    # Dashboard module cards
 │   │   ├── hooks/
 │   │   │   ├── useModules.ts     # Fetch all modules + lessons
 │   │   │   ├── useLesson.ts      # Fetch single lesson by slug
-│   │   │   └── useProgress.ts    # Track student progress
+│   │   │   ├── useProgress.ts    # Track student progress
+│   │   │   └── useAttemptPersistence.ts # Persist exercise attempts via event bus
 │   │   ├── types/
 │   │   │   └── index.ts          # LessonContent, Exercise, etc.
 │   │   └── index.ts
@@ -76,8 +77,8 @@ src/
 │       ├── hooks/
 │       │   ├── useTutorMessages.ts # Fetch/save messages to Supabase
 │       │   ├── useTutorContext.ts  # Build AI context from lesson/code
-│       │   ├── useExerciseAttempts.ts # Track failures, trigger help
-│       │   └── useTutorChat.ts   # Main orchestration hook
+│       │   ├── useExerciseAttempts.ts # Track failures, trigger help (in-memory)
+│       │   └── useTutorChat.ts   # Main orchestration hook (publishes events)
 │       ├── lib/
 │       │   ├── config.ts         # TUTOR_CONFIG (name: "Anu")
 │       │   ├── tutor-service.ts  # Supabase Edge Function client
@@ -100,15 +101,23 @@ src/
 │   │   ├── ui/                   # shadcn/ui (button, card, input, label, etc.)
 │   │   ├── Avatar.tsx            # Emoji avatar display
 │   │   └── AvatarPicker.tsx      # Emoji selection grid
+│   ├── hooks/
+│   │   ├── useEventBus.tsx       # Type-safe pub/sub event bus (React Context)
+│   │   ├── useBreakpoint.ts      # Responsive breakpoint detection
+│   │   ├── useDebounce.ts        # Debounce hook
+│   │   ├── useLocalStorage.ts    # LocalStorage hook
+│   │   └── index.ts              # Export all hooks
 │   ├── lib/
 │   │   ├── supabase.ts           # Typed Supabase client
 │   │   ├── logger.ts             # Dev-only logging
+│   │   ├── timezone.ts           # Timezone detection utilities
 │   │   └── utils.ts              # cn() helper
 │   └── types/
-│       └── database.ts           # Supabase generated types
+│       ├── database.ts           # Supabase generated types
+│       └── events.ts             # Event bus type definitions
 │
 ├── App.tsx                       # Router with guards
-├── main.tsx
+├── main.tsx                      # Entry point (wraps with EventBusProvider)
 └── index.css                     # Tailwind v4 + shadcn theme
 ```
 
@@ -184,6 +193,46 @@ VITE_SUPABASE_ANON_KEY=xxx
 3. **Shared is global** — Only truly cross-cutting concerns (supabase client, ui components)
 4. **No cross-module imports of internal files** — Export from module index if needed
 5. **Dev-only logging** — Use `logger` from `@/shared/lib/logger`
+6. **Event-driven for cross-module data** — Use event bus for decoupled communication
+
+## Event Bus Architecture
+The app uses a type-safe pub/sub event bus (`src/shared/hooks/useEventBus.tsx`) for decoupled cross-module communication.
+
+### When to Use
+- Cross-module data flow (e.g., tutor → lesson persistence)
+- Fire-and-forget operations (don't block UI)
+- Multiple subscribers need same data (e.g., persistence + future gamification)
+
+### Usage Pattern
+```typescript
+// Publishing (in tutor module)
+import { usePublish } from '@/shared/hooks'
+const publish = usePublish()
+publish('exercise:attempt_recorded', { studentId, lessonId, passed, ... })
+
+// Subscribing (in lesson module)
+import { useSubscribe } from '@/shared/hooks'
+useSubscribe('exercise:attempt_recorded', (data) => {
+  // Handle event (e.g., persist to database)
+})
+```
+
+### Available Events
+| Event | Publisher | Subscribers | Purpose |
+|-------|-----------|-------------|---------|
+| `exercise:attempt_recorded` | `useTutorChat` | `useAttemptPersistence` | Persist attempts to DB |
+| `lesson:completed` | (future) | (future) | Track lesson completion |
+| `code:run_executed` | (future) | (future) | Track code runs |
+
+### Testing with Event Bus
+Components/hooks using the event bus must be wrapped in `EventBusProvider`:
+```typescript
+import { EventBusProvider } from '@/shared/hooks'
+function Wrapper({ children }) {
+  return <EventBusProvider>{children}</EventBusProvider>
+}
+const { result } = renderHook(() => useMyHook(), { wrapper: Wrapper })
+```
 
 ## Key Design Principles
 1. **Curriculum controls AI** — Lessons define what tutor can teach
@@ -206,11 +255,13 @@ VITE_SUPABASE_ANON_KEY=xxx
 - JavaScript only (no other languages)
 - Linear lesson flow (no branching)
 - Desktop-first (no mobile optimization)
-- No gamification, social features, or user-generated content
+- No social features or user-generated content
+- Gamification in progress (see `docs/PERSONALIZED_LEARNING.md`)
 
 ## Documentation
 - `docs/ONBOARDING.md` — Getting started guide
 - `docs/TESTING.md` — Testing strategy and TDD approach
 - `docs/FRICTIONLESS_ONBOARDING.md` — Access code system design
+- `docs/PERSONALIZED_LEARNING.md` — Gamification & data collection spec (Phase 1 complete)
 - `docs/FUTURE_ENHANCEMENTS.md` — Roadmap and planned features
 - `docs/SCAFFOLD_PROMPT.md` — Reusable project scaffold template

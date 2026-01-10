@@ -296,6 +296,37 @@ it('should fetch data', async () => {
 })
 ```
 
+### Testing with Context Providers
+
+Some hooks require React Context providers (e.g., EventBusProvider). Create a wrapper:
+
+```typescript
+import { createElement, type ReactNode } from 'react'
+import { EventBusProvider } from '@/shared/hooks'
+
+function Wrapper({ children }: { children: ReactNode }) {
+  return createElement(EventBusProvider, null, children)
+}
+
+// Use wrapper in renderHook
+const { result } = renderHook(() => useMyHook(), { wrapper: Wrapper })
+
+// For multiple providers, nest them
+function MultiWrapper({ children }: { children: ReactNode }) {
+  return createElement(
+    EventBusProvider,
+    null,
+    createElement(OtherProvider, null, children)
+  )
+}
+```
+
+**Hooks that require EventBusProvider:**
+- `usePublish()` - Publishes events
+- `useSubscribe()` - Subscribes to events
+- `useTutorChat()` - Uses event publishing internally
+- `useAttemptPersistenceListener()` - Uses event subscription
+
 ### Testing Components
 
 ```typescript
@@ -460,4 +491,4 @@ Tests run automatically on every PR:
 
 ---
 
-*Last updated: January 2025*
+*Last updated: January 2026*

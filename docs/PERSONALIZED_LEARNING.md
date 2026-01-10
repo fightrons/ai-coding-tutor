@@ -2,7 +2,7 @@
 
 > Implementation plan for data collection, gamification, and dashboard redesign - designed for kids 7+.
 
-**Status**: Planning Complete | Implementation Not Started
+**Status**: Phase 1 Complete | Phase 2 Not Started
 **Target Audience**: Kids 7+ (with age-adaptive experience)
 **Last Updated**: January 2026
 
@@ -137,7 +137,7 @@ INSERT INTO feature_flags (name, enabled, rollout_percentage) VALUES
 
 ## Event-Driven Architecture
 
-**Status**: Not Started
+**Status**: ✅ Complete
 **Priority**: Critical - implement before Phase 1
 
 ### Problem
@@ -295,7 +295,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 
 ## Phase 1: Data Collection
 
-**Status**: Not Started
+**Status**: ✅ Complete
 **Priority**: Foundation - must complete first
 
 ### Problem
@@ -1227,14 +1227,16 @@ To avoid technical debt later:
 
 ## Files Summary
 
-### Pre-Phase: Infrastructure
+### Pre-Phase: Infrastructure ✅
 
-| Action | File |
-|--------|------|
-| CREATE | `src/shared/hooks/useEventBus.ts` |
-| CREATE | `src/shared/hooks/useEventBus.test.ts` |
-| CREATE | `src/shared/lib/timezone.ts` |
-| MODIFY | `src/main.tsx` (wrap with EventBusProvider) |
+| Action | File | Status |
+|--------|------|--------|
+| CREATE | `src/shared/types/events.ts` | ✅ |
+| CREATE | `src/shared/hooks/useEventBus.tsx` | ✅ |
+| CREATE | `src/shared/hooks/useEventBus.test.tsx` | ✅ |
+| CREATE | `src/shared/lib/timezone.ts` | ✅ |
+| MODIFY | `src/main.tsx` (wrap with EventBusProvider) | ✅ |
+| MODIFY | `src/shared/hooks/index.ts` (export event bus) | ✅ |
 
 ### Pre-Phase: COPPA Compliance
 
@@ -1247,16 +1249,17 @@ To avoid technical debt later:
 | CREATE | `src/pages/ParentConsent.tsx` |
 | CREATE | `supabase/functions/send-consent-email/index.ts` |
 
-### Phase 1: Data Collection
+### Phase 1: Data Collection ✅
 
-| Action | File |
-|--------|------|
-| CREATE | `supabase/migrations/005_exercise_attempt_aggregates.sql` |
-| CREATE | `src/modules/lesson/hooks/useAttemptPersistence.ts` |
-| CREATE | `src/modules/lesson/hooks/useAttemptPersistence.test.ts` |
-| MODIFY | `src/modules/tutor/hooks/useTutorChat.ts` (publish events) |
-| MODIFY | `src/modules/lesson/components/LessonLayout.tsx` (activate listener) |
-| MODIFY | `src/modules/lesson/index.ts` |
+| Action | File | Status |
+|--------|------|--------|
+| CREATE | `supabase/migrations/005_exercise_attempt_aggregates.sql` | ✅ |
+| CREATE | `src/modules/lesson/hooks/useAttemptPersistence.ts` | ✅ |
+| CREATE | `src/modules/lesson/hooks/useAttemptPersistence.test.ts` | ✅ |
+| MODIFY | `src/modules/tutor/hooks/useTutorChat.ts` (publish events) | ✅ |
+| MODIFY | `src/modules/tutor/hooks/useTutorChat.test.ts` (add EventBus wrapper) | ✅ |
+| MODIFY | `src/modules/lesson/components/LessonLayout.tsx` (activate listener) | ✅ |
+| MODIFY | `src/modules/lesson/index.ts` | ✅ |
 
 ### Phase 2: Gamification
 
@@ -1290,11 +1293,12 @@ To avoid technical debt later:
 ## Implementation Checklist
 
 ### Pre-Phase: Infrastructure Setup
-- [ ] Create `src/shared/hooks/useEventBus.ts` with type-safe events
-- [ ] Create `src/shared/hooks/useEventBus.test.ts`
-- [ ] Wrap app with `EventBusProvider` in `src/main.tsx`
-- [ ] Create `src/shared/lib/timezone.ts` for auto-detection
-- [ ] **Verify**: Event bus publishes and subscribes correctly
+- [x] Create `src/shared/hooks/useEventBus.tsx` with type-safe events
+- [x] Create `src/shared/hooks/useEventBus.test.tsx`
+- [x] Wrap app with `EventBusProvider` in `src/main.tsx`
+- [x] Create `src/shared/lib/timezone.ts` for auto-detection
+- [x] Create `src/shared/types/events.ts` for event type definitions
+- [x] **Verify**: Event bus publishes and subscribes correctly
 
 ### Pre-Phase: COPPA Compliance (Required for under-13)
 - [ ] Create migration `004_parental_consent.sql`
@@ -1307,13 +1311,14 @@ To avoid technical debt later:
 - [ ] **Verify**: Under-13 signup triggers consent flow
 
 ### Phase 1: Data Collection
-- [ ] Create migration `005_exercise_attempt_aggregates.sql`
-- [ ] Run migration: `supabase db reset`
-- [ ] Create `useAttemptPersistence.ts` hook (event subscriber)
-- [ ] Write tests for persistence hook
-- [ ] Update `useTutorChat.ts` to publish events (not direct calls)
-- [ ] Activate listener in `LessonLayout.tsx`
-- [ ] **Verify**: Complete exercise → check `exercise_attempts` table
+- [x] Create migration `005_exercise_attempt_aggregates.sql`
+- [x] Run migration: `supabase db reset`
+- [x] Create `useAttemptPersistence.ts` hook (event subscriber)
+- [x] Create `useAttemptPersistence.test.ts` (tests for persistence hook)
+- [x] Update `useTutorChat.ts` to publish events (not direct calls)
+- [x] Activate listener in `LessonLayout.tsx`
+- [x] Update `src/modules/lesson/index.ts` exports
+- [x] **Verify**: Complete exercise → check `exercise_attempts` table
 
 ### Phase 2: Gamification
 - [ ] Create migration `006_gamification.sql`
@@ -2123,3 +2128,5 @@ If confetti or animation fails, user still sees success state - just without the
 | Jan 2026 | **Added**: Formalized data migration script for existing users |
 | Jan 2026 | **Added**: Concrete E2E testing strategy for streaks |
 | Jan 2026 | **Updated**: Implementation checklist with all new items |
+| Jan 2026 | **✅ Completed**: Pre-Phase Infrastructure (Event Bus, types, timezone utility) |
+| Jan 2026 | **✅ Completed**: Phase 1 Data Collection (attempt persistence, DB triggers, event publishing) |
