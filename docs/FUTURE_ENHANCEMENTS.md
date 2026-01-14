@@ -4,7 +4,7 @@ A planning and execution guide for upcoming features and improvements.
 
 ---
 
-## Personalized Learning
+## Adaptive Learning Features
 
 ### Contextual Video Resources
 **Current**: Text-based lessons only
@@ -49,6 +49,42 @@ A planning and execution guide for upcoming features and improvements.
 - Curriculum content per language
 - Syntax highlighting and IntelliSense per language
 
+### Interactive Database Learning
+**Current**: No database topics
+**Goal**: Hands-on MongoDB and PostgreSQL learning with real database terminals
+
+Leverage free tiers of cloud database services to give learners a real terminal-like experience:
+
+**Approach:**
+- User creates their own free tier account (MongoDB Atlas / Supabase) as part of the exercise
+- User provides connection credentials (API keys / connection strings) in the app
+- Terminal-like interface connects to their actual database instance
+- Real query execution with immediate feedback
+
+**MongoDB Atlas Integration:**
+- Free tier: 512MB storage, shared cluster
+- Teach: CRUD operations, aggregation pipelines, indexing
+- Terminal emulates `mongosh` experience
+- Exercises: Build collections, query documents, design schemas
+
+**Supabase/PostgreSQL Integration:**
+- Free tier: 500MB database, 2 projects
+- Teach: SQL fundamentals, joins, transactions, RLS policies
+- Terminal emulates `psql` experience
+- Exercises: Create tables, write queries, understand relational design
+
+**Benefits:**
+- Real database experience, not simulated
+- Students own their data and can continue experimenting
+- Teaches cloud service setup (valuable skill)
+- No backend infrastructure costs for us
+
+**Security Considerations:**
+- Credentials stored client-side only (localStorage)
+- Clear guidance on free tier limitations
+- Warn users not to store sensitive data
+- Connection validation before storing credentials
+
 ### Mobile Optimization
 **Current**: Desktop-first
 **Goal**: Responsive experience across devices
@@ -89,6 +125,83 @@ A planning and execution guide for upcoming features and improvements.
 - Study groups
 - Per-lesson discussion threads
 - Peer code review (optional)
+
+### COPPA Compliance
+**Current**: Not implemented
+**Goal**: Legal compliance for users under 13
+**Spec**: See `docs/PERSONALIZED_LEARNING.md` for detailed consent flow
+
+- Age gate during onboarding
+- Parental consent email flow for under-13 users
+- Parent oversight dashboard (future)
+- Sound defaults OFF for children
+- Data collection disclosure
+
+---
+
+## Multi-Subject Platform Vision
+
+> Long-term vision (1+ years): Expand beyond JavaScript to a unified learning platform.
+
+### Platform Architecture Decision
+**Decision**: Single unified platform with subject categories (not separate apps)
+
+**Rationale**:
+- Kids 7+ benefit from single app (easier to use, parents prefer)
+- Unified gamification = more XP sources = more engagement
+- Shared infrastructure reduces development effort
+- Cross-subject learning connections possible
+
+### Subject Categories
+
+**Programming (Playground-based)**:
+- JavaScript, Python, TypeScript, HTML/CSS
+- All share the same "Playground" editor with language selector
+- Unified sandbox infrastructure, consistent UX
+
+**Non-Coding Subjects (Custom interfaces)**:
+- Chess → Chess Board component
+- Music Theory → Piano/Staff notation
+- English → Text/Quiz interface
+- Mathematics → Formula editor + Quiz
+
+### Database Schema Evolution
+
+When ready to implement:
+```sql
+-- New: Subject/Domain concept
+subjects (
+  id, slug, title, description,
+  category,             -- 'programming' | 'other'
+  interface_type,       -- 'playground' | 'chess_board' | 'piano' | 'quiz'
+  icon, color
+)
+
+-- Updated: Module belongs to subject
+modules (
+  id, subject_id,       -- NEW: foreign key
+  title, slug, sequence_order
+)
+
+-- Updated: Per-subject progression
+student_subject_progress (
+  id, student_id, subject_id,
+  xp_total, current_level,
+  lessons_completed, total_time_seconds
+)
+```
+
+### Naming Convention
+| Current Name | New Name | Reason |
+|--------------|----------|--------|
+| Editor | **Playground** | More playful, kid-friendly, applies to all programming languages |
+
+### What NOT to Build Now
+- Subject management UI
+- Multiple subject interfaces (chess, music, etc.)
+- Cross-subject analytics
+- Subject selection/switching
+- Multi-language Playground (Python, etc.)
 
 ---
 
@@ -569,3 +682,4 @@ When picking up an enhancement:
 *Last updated: January 2026*
 *Testing section expanded: December 2024*
 *Gamification Phase 1 complete: January 2026*
+*Added: Multi-Subject Platform Vision, COPPA Compliance, Interactive Database Learning: January 2026*
